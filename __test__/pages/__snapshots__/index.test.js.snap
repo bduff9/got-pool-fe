@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`IndexPage matches snapshot 1`] = `
+<div>
+  <div />
+  <nav
+    className="nav"
+  >
+    <ul>
+      <li>
+        <a
+          href="/"
+          onClick={[Function]}
+        >
+          Home
+        </a>
+      </li>
+      <li>
+        <a
+          href="/dogs"
+          onClick={[Function]}
+        >
+          Dogs
+        </a>
+      </li>
+      <li>
+        <a
+          href="/dogs/shepherd"
+          onClick={[Function]}
+        >
+          Only Shepherds
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <div>
+    <h1>
+      This is the Front Page.
+    </h1>
+    <h3>
+      Random dog of the day:
+    </h3>
+    <img
+      alt=""
+    />
+  </div>
+</div>
+`;

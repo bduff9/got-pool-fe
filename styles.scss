@@ -1,0 +1,93 @@
+/*! bulmaswatch v0.4.2 | MIT License */
+@import "./node_modules/bulmaswatch/slate/variables";
+@import "./node_modules/bulma_scss/bulma";
+@import "./node_modules/bulmaswatch/slate/overrides";
+@import "./node_modules/react-toastify/scss/main";
+
+@font-face {
+  font-family: 'got';
+  src: url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.eot'); /* IE9 Compat Modes */
+  src: url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.woff') format('woff'), /* Pretty Modern Browsers */
+       url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.ttf')  format('truetype') /* Safari, Android, iOS */
+}
+
+.hero.is-primary a.nav-item.active {
+  color: red;
+  font-weight: bold;
+}
+
+.rules {
+  ul {
+    list-style-type: disc;
+    margin-left: 2em;
+  }
+
+  li {
+    padding-bottom: .5em;
+  }
+
+  margin-left: 1em;
+}
+
+.hero-head {
+  .nav-left {
+    font-family: 'got';
+    overflow: hidden;
+
+    .nav-item {
+      padding: .5rem .75rem;
+
+      h1 {
+        display: inline-block;
+        font-weight: 300;
+      }
+    }
+  }
+}
+
+.nav-right,
+.nav-center {
+  .nav-item {
+    font-family: 'got';
+    font-size: x-small;
+    padding: 1.5em;
+    letter-spacing: .12em;
+  }
+}
+
+.hero-foot {
+  .nav-item {
+    flex-grow: 1;
+    justify-content: center;
+  }
+}
+
+.title {
+  padding-top: .75em;
+  font-size: 1.25em;
+}
+
+.dead {
+  text-decoration: line-through;
+
+  img {
+    position: relative;
+
+    &:after {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      content: "\274c";
+      font-size: 50px;
+      color: #FFF;
+      line-height: 100px;
+      text-align: center;
+    }
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}
