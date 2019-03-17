@@ -1,56 +1,58 @@
-import React, { Component } from 'react';
+import { ApolloClient, NormalizedCacheObject } from 'apollo-boost';
 import Head from 'next/head';
+import React, { Component } from 'react';
 import { getDataFromTree } from 'react-apollo';
 
 import initApollo from '../api/apollo';
-import { ApolloClient, NormalizedCacheObject } from 'apollo-boost';
+import { Context } from '../api/models';
 
-const withApollo = App => class Apollo extends Component {
-	static displayName = 'withApollo(App)';
-	apolloClient: ApolloClient<NormalizedCacheObject>;
+const withApollo = (App: Component): Component =>
+	class Apollo extends Component {
+		public static displayName = 'withApollo(App)';
+		private apolloClient: ApolloClient<NormalizedCacheObject>;
 
-	static async getInitialProps (ctx: any) {
-		const { Component, router } = ctx;
-		let appProps = {};
+		public static async getInitialProps (ctx: Context): Promise<{}> {
+			const { Component, router } = ctx;
+			let appProps = {};
 
-		if (App.getInitialProps) appProps = await App.getInitialProps(ctx);
+			if (App.getInitialProps) appProps = await App.getInitialProps(ctx);
 
-		const apollo = initApollo();
+			const apollo = initApollo();
 
-		if (!process.browser) {
-			try {
-				await getDataFromTree(
-					<App
-						{...appProps}
-						Component={Component}
-						router={router}
-						apolloClient={apollo}
-					/>
-				);
-			} catch (error) {
-				console.error('Error while running `getDataFromTree`', error);
+			if (!process.browser) {
+				try {
+					await getDataFromTree(
+						<App
+							{...appProps}
+							Component={Component}
+							router={router}
+							apolloClient={apollo}
+						/>
+					);
+				} catch (error) {
+					console.error('Error while running `getDataFromTree`', error);
+				}
+
+				Head.rewind();
 			}
 
-			Head.rewind();
+			const apolloState = apollo.cache.extract();
+
+			return {
+				...appProps,
+				apolloState,
+			};
 		}
 
-		const apolloState = apollo.cache.extract();
+		public constructor (props: any) {
+			super(props);
 
-		return {
-			...appProps,
-			apolloState,
-		};
-	}
+			this.apolloClient = initApollo(props.apolloState);
+		}
 
-	constructor (props: any) {
-		super(props);
-
-		this.apolloClient = initApollo(props.apolloState);
-	}
-
-	render () {
-		return <App {...this.props} apolloClient={this.apolloClient} />;
-	}
-}
+		public render (): JSX.Element {
+			return <App {...this.props} apolloClient={this.apolloClient} />;
+		}
+	};
 
 export default withApollo;

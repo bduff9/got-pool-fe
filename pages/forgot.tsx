@@ -2,14 +2,14 @@ import React, { Component } from 'react';
 import { Container } from 'bloomer';
 
 import Default from '../layouts/default';
-import LoginForm from '../components/login-form';
+import ForgotPasswordForm from '../components/forgot-password-form';
 import { Request, Response } from 'express';
 import { ensureUnauthenticated } from '../api/utilities';
 import { Unauthenticated } from '../layouts/unauthenticated';
 
-const meta = { title: 'Login' };
+const meta = { title: 'Forgot Password' };
 
-class Login extends Component<{ email: string; password: string }> {
+class ForgotPassword extends Component<{ email: string; password: string }> {
 	public static async getInitialProps ({
 		req,
 		res,
@@ -17,7 +17,7 @@ class Login extends Component<{ email: string; password: string }> {
 	}: {
 	req: Request;
 	res: Response;
-	query: { email: string; password: string };
+	query: { email: string };
 	}): Promise<{}> {
 		ensureUnauthenticated(req, res);
 
@@ -25,13 +25,13 @@ class Login extends Component<{ email: string; password: string }> {
 	}
 
 	public render (): JSX.Element {
-		const { email, password } = this.props;
+		const { email } = this.props;
 
 		return (
 			<Unauthenticated>
 				<Default meta={meta}>
 					<Container>
-						<LoginForm email={email} password={password} />
+						<ForgotPasswordForm email={email} />
 					</Container>
 				</Default>
 			</Unauthenticated>
@@ -39,4 +39,4 @@ class Login extends Component<{ email: string; password: string }> {
 	}
 }
 
-export default Login;
+export default ForgotPassword;

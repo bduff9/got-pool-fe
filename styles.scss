@@ -6,12 +6,15 @@
 
 @font-face {
   font-family: 'got';
-  src: url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.eot'); /* IE9 Compat Modes */
-  src: url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.woff') format('woff'), /* Pretty Modern Browsers */
-       url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.ttf')  format('truetype') /* Safari, Android, iOS */
+  src: url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.eot');
+  /* IE9 Compat Modes */
+  src: url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.woff') format('woff'),
+    /* Pretty Modern Browsers */
+    url('https://s3.us-east-2.amazonaws.com/got-pool-public-resources/fonts/got/GameofThrones.ttf') format('truetype')
+    /* Safari, Android, iOS */
 }
 
-.hero.is-primary a.nav-item.active {
+.hero.is-primary a.navbar-item.active {
   color: red;
   font-weight: bold;
 }
@@ -30,11 +33,11 @@
 }
 
 .hero-head {
-  .nav-left {
+  .navbar-brand {
     font-family: 'got';
     overflow: hidden;
 
-    .nav-item {
+    .navbar-item {
       padding: .5rem .75rem;
 
       h1 {
@@ -45,9 +48,9 @@
   }
 }
 
-.nav-right,
-.nav-center {
-  .nav-item {
+.navbar-start,
+.navbar-end {
+  .navbar-item {
     font-family: 'got';
     font-size: x-small;
     padding: 1.5em;
@@ -56,7 +59,7 @@
 }
 
 .hero-foot {
-  .nav-item {
+  .navbar-item {
     flex-grow: 1;
     justify-content: center;
   }
@@ -90,4 +93,12 @@
 
 .clickable {
   cursor: pointer;
+}
+
+.field-body {
+  flex-wrap: wrap;
+}
+
+.nowrap {
+  white-space: nowrap;
 }

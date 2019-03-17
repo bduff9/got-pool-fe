@@ -1,93 +1,191 @@
-import React, { Component } from 'react';
-import { Auth } from 'aws-amplify';
 import { CognitoUser } from '@aws-amplify/auth';
+import { ISignUpResult, CognitoUserAttribute } from 'amazon-cognito-identity-js';
+import { Auth } from 'aws-amplify';
+import React, { Component } from 'react';
+import Cookies from 'universal-cookie';
 
-const AuthContext = React.createContext({});
+const cookies = new Cookies();
+export const COOKIE_NAME = 'authentication';
+
+export interface LoginArgs {
+	email: string;
+	password: string;
+}
+
+export interface RegisterArgs {
+	email: string;
+	firstName: string;
+	lastName: string;
+	password: string;
+}
+
+export interface AuthContextType {
+	confirmEmail: (email: string, code: string) => Promise<any>;
+	forgotPassword: (email: string) => Promise<void>;
+	forgotPasswordSubmit: (email: string, code: string, newPassword: string) => Promise<void>;
+	isSignedIn: boolean;
+	loading: boolean;
+	login: (creds: LoginArgs) => Promise<string>;
+	logout: () => Promise<void>;
+	register: (data: RegisterArgs) => Promise<ISignUpResult>;
+	user: CognitoUser | null;
+	resendCode: (email: string) => Promise<any>;
+}
+
+export const AuthContext = React.createContext<AuthContextType>({
+	confirmEmail: (email: string, code: string) => Promise.resolve(email + code),
+	forgotPassword: () => Promise.resolve(),
+	forgotPasswordSubmit: (email: string, code: string, newPassword: string) => Promise.resolve(),
+	isSignedIn: false,
+	loading: true,
+	login: (creds: LoginArgs) => Promise.resolve(creds.email),
+	logout: () => Promise.resolve(),
+	register: (creds: RegisterArgs) => Promise.resolve({} as any),
+	resendCode: (email: string) => Promise.resolve(email),
+	user: null,
+});
 
 class AuthProvider extends Component {
+	public state = {
+		isSignedIn: false,
+		loading: true,
+		user: null,
+	};
 
-	componentDidMount () {
+	public componentDidMount (): void {
 		Auth.currentAuthenticatedUser()
 			.then((user: CognitoUser) => {
+				this.setCookie();
 				this.setState({ isSignedIn: true, loading: false, user });
 			})
-			.catch((err: Error) => {
-				console.error('Error in getting current user', err);
+			.catch(() => {
 				this.setState({ isSignedIn: false, loading: false, user: null });
 			});
 	}
 
-	forgotPassword = (email: string) => Auth.forgotPassword(email);
+	private confirmEmail = (email: string, code: string) => Auth.confirmSignUp(email, code).then(() => {
+		Auth.currentAuthenticatedUser()
+			.then((user: CognitoUser) => {
+				this.setCookie();
+				this.setState({ isSignedIn: true, loading: false, user });
+			})
+			.catch(() => {
+				this.setState({ isSignedIn: false, loading: false, user: null });
+			});
+	});
 
-	login = async ({ email, password }: { email: string, password: string }) => {
+	private forgotPassword = (email: string) => Auth.forgotPassword(email);
+
+	private forgotPasswordSubmit = (email: string, code: string, newPassword: string) => Auth.forgotPasswordSubmit(email, code, newPassword);
+
+	private getCognitoSub = (user: CognitoUser): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			user.getUserAttributes((err: Error | undefined, attributes: CognitoUserAttribute[] | undefined): void => {
+				if (err) {
+					reject(err);
+				} else {
+					const sub = attributes ? attributes.filter(attribute => attribute.getName() === 'sub') : [];
+
+					if (sub.length === 0) {
+						reject(new Error('No "sub" attribute found'));
+					} else {
+						resolve(sub[0].getValue());
+					}
+				}
+			});
+		});
+	};
+
+	private login = async ({
+		email,
+		password,
+	}: LoginArgs) => {
 		try {
 			const user = await Auth.signIn(email, password);
-			let loggedUser;
 			let code = '';
+			let userID;
+			let loggedUser;
 
 			switch (user.challengeName) {
 				case 'SMS_MFA':
 				case 'SOFTWARE_TOKEN_MFA':
 					loggedUser = await Auth.confirmSignIn(user, code, user.challengeName);
+					userID = await this.getCognitoSub(loggedUser);
 
+					this.setCookie();
 					this.setState({ isSignedIn: true, loading: false, user: loggedUser });
 
-					return Promise.resolve('');
+					return Promise.resolve(userID);
 				case 'NEW_PASSWORD_REQUIRED':
 					loggedUser = await Auth.completeNewPassword(user, password, {
 						email,
 					});
+					userID = await this.getCognitoSub(loggedUser);
 
+					this.setCookie();
 					this.setState({ isSignedIn: true, loading: false, user: loggedUser });
 
-					return Promise.resolve('');
+					return Promise.resolve(userID);
 				case 'MFA_SETUP':
 					return Auth.setupTOTP(user);
 				default:
+					userID = await this.getCognitoSub(user);
+
+					this.setCookie();
 					this.setState({ isSignedIn: true, loading: false, user });
 
-					return Promise.resolve('');
+					return Promise.resolve(userID);
 			}
 		} catch (err) {
-			switch (err.code) {
-				case 'UserNotConfirmedException':
-					console.error('TODO', err);
-
-					return Promise.reject(err.message);
-				case 'PasswordResetRequiredException':
-					console.error('TODO', err);
-
-					return Promise.reject(err.message);
-				default:
-					console.error('TODO', err);
-
-					return Promise.reject(err.message || err);
-			}
+			return Promise.reject(err);
 		}
 	};
 
-	logout = () => Auth.signOut()
-		.then(() => this.setState({ isSignedIn: false, user: null }));
+	private logout = () =>
+		Auth.signOut().then(() => {
+			cookies.remove(COOKIE_NAME);
+			this.setState({ isSignedIn: false, user: null });
+		});
 
-	state = {
-		forgotPassword: this.forgotPassword,
-		isSignedIn: false,
-		loading: true,
-		login: this.login,
-		logout: this.logout,
-		user: null,
-	};
+	private register = ({
+		email,
+		firstName,
+		lastName,
+		password,
+	}: RegisterArgs) =>
+		Auth.signUp({
+			username: email,
+			password,
+			attributes: {
+				email,
+				'family_name': lastName,
+				'given_name': firstName,
+			},
+		});
 
-	render () {
+	private resendCode = (email: string) => Auth.resendSignUp(email);
+
+	private setCookie (): void {
+		Auth.currentSession().then(session => {
+			const idToken = session.getIdToken().getJwtToken();
+
+			cookies.set(COOKIE_NAME, idToken, { path: '/' });
+		});
+	}
+
+	public render (): JSX.Element {
 		return (
 			<AuthContext.Provider
 				value={{
 					...this.state,
+					confirmEmail: this.confirmEmail,
 					forgotPassword: this.forgotPassword,
+					forgotPasswordSubmit: this.forgotPasswordSubmit,
 					login: this.login,
 					logout: this.logout,
-				}}
-			>
+					register: this.register,
+					resendCode: this.resendCode,
+				}}>
 				{this.props.children}
 			</AuthContext.Provider>
 		);

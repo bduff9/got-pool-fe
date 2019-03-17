@@ -10,3 +10,17 @@ export const allCharacters = gql`
 		}
 	}
 `;
+
+export const currentUser = gql`
+	query currentUser {
+		currentUser {
+			id
+			name
+			paid
+			payment_option
+			payment_account
+			tiebreaker
+			submitted
+		}
+	}
+`;
