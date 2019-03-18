@@ -14,6 +14,7 @@ import {
 } from 'bloomer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import ActiveLink from '../components/active-link';
 import RulesModal from '../components/rules-modal';
 import { S3_URL } from '../api/constants';
 
@@ -58,11 +59,9 @@ const Navigation = ({
 						</Link>
 						{authenticated && (
 							<Fragment>
-								<Link href="/">
-									<NavbarItem isHidden="tablet" href="/">
-										<FontAwesomeIcon icon="home" />
-									</NavbarItem>
-								</Link>
+								<ActiveLink isHidden="tablet" href="/">
+									<FontAwesomeIcon icon="home" />
+								</ActiveLink>
 								<NavbarItem
 									isHidden="tablet"
 									href="javascript:void(0);"
@@ -70,73 +69,48 @@ const Navigation = ({
 									<FontAwesomeIcon icon="question-circle" />
 								</NavbarItem>
 								{!hasSubmitted && (
-									<Link href="/picks/make">
-										<NavbarItem isHidden="tablet" href="/picks/make">
-											<FontAwesomeIcon icon="users" />
-										</NavbarItem>
-									</Link>
+									<ActiveLink href="/picks/make" isHidden="tablet">
+										<FontAwesomeIcon icon="users" />
+									</ActiveLink>
 								)}
-								{isAdmin ? (
-									<Link href="/admin/users">
-										<NavbarItem isHidden="tablet" href="/admin/users">
-											<FontAwesomeIcon icon="user-cog" />
-										</NavbarItem>
-									</Link>
-								) : null}
-								{isAdmin ? (
-									<Link href="/admin/pool">
-										<NavbarItem isHidden="tablet" href="/admin/pool">
-											<FontAwesomeIcon icon="book-dead" />
-										</NavbarItem>
-									</Link>
-								) : null}
-								{isAdmin ? (
-									<Link href="/admin/logs">
-										<NavbarItem isHidden="tablet" href="/admin/logs">
-											<FontAwesomeIcon icon="receipt" />
-										</NavbarItem>
-									</Link>
-								) : null}
-								<Link href="/logout">
-									<NavbarItem isHidden="tablet" href="/logout">
-										<FontAwesomeIcon icon="sign-out-alt" />
-									</NavbarItem>
-								</Link>
+								{isAdmin && (
+									<ActiveLink href="/admin/users" isHidden="tablet">
+										<FontAwesomeIcon icon="user-cog" />
+									</ActiveLink>
+								)}
+								{isAdmin && (
+									<ActiveLink href="/admin/pool" isHidden="tablet">
+										<FontAwesomeIcon icon="book-dead" />
+									</ActiveLink>
+								)}
+								{isAdmin && (
+									<ActiveLink href="/admin/logs" isHidden="tablet">
+										<FontAwesomeIcon icon="receipt" />
+									</ActiveLink>
+								)}
+								<ActiveLink href="/logout" isHidden="tablet">
+									<FontAwesomeIcon icon="sign-out-alt" />
+								</ActiveLink>
 							</Fragment>
 						)}
 					</NavbarBrand>
 					<NavbarMenu>
 						{authenticated ? (
 							<NavbarEnd isHidden="mobile">
-								<Link href="/">
-									<a className="navbar-item">Home</a>
-								</Link>
-								<NavbarItem href="javascript:void(0);" onClick={toggleRules}>
+								<ActiveLink href="/">Home</ActiveLink>
+								<NavbarItem
+									href="javascript:void(0);"
+									isActive={showRulesModal}
+									onClick={toggleRules}>
 									Rules
 								</NavbarItem>
 								{!hasSubmitted && (
-									<Link href="/picks/make">
-										<a className="navbar-item">Make Picks</a>
-									</Link>
+									<ActiveLink href="/picks/make">Make Picks</ActiveLink>
 								)}
-								{isAdmin ? (
-									<Link href="/admin/users">
-										<a className="navbar-item">Users</a>
-									</Link>
-								) : null}
-								{isAdmin ? (
-									<Link href="/admin/pool">
-										<a className="navbar-item">Kills</a>
-									</Link>
-								) : null}
-								{isAdmin ? (
-									<Link href="/admin/logs">
-										<a className="navbar-item">Logs</a>
-									</Link>
-								) : null}
-								<Link href="/logout">
-									<a className="navbar-item">Log Out</a>
-								</Link>
+								{isAdmin && <ActiveLink href="/admin/users">Users</ActiveLink>}
+								{isAdmin && <ActiveLink href="/admin/pool">Kills</ActiveLink>}
+								{isAdmin && <ActiveLink href="/admin/logs">Logs</ActiveLink>}
+								<ActiveLink href="/logout">Log Out</ActiveLink>
 							</NavbarEnd>
 						) : null}
 					</NavbarMenu>
