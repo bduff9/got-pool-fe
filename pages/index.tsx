@@ -1,8 +1,10 @@
+import { Title } from 'bloomer';
 import { Request, Response } from 'express';
+import Link from 'next/link';
 import React, { Component } from 'react';
 import { Query } from 'react-apollo';
 
-import { S3_URL } from '../api/constants';
+import { DUE_DATE_FORMATTED, S3_URL } from '../api/constants';
 import { allCharacters } from '../api/queries';
 import { ensureAuthenticated } from '../api/utilities';
 import { Authenticated } from '../layouts/authenticated';
@@ -27,38 +29,13 @@ class IndexPage extends Component {
 		return (
 			<Authenticated>
 				<Default meta={meta}>
-					<h1>Dashboard</h1>
-					<Query query={allCharacters}>
-						{({ loading, error, data: { characters } }) => {
-							if (error) return <div>Error loading posts {error}</div>;
-
-							if (loading) return <div>Loading...</div>;
-
-							return (
-								<ul>
-									{characters.map(
-										({
-											id,
-											img,
-											name,
-										}: {
-										id: string;
-										img: string;
-										name: string;
-										}) => (
-											<li key={`character-${id}`}>
-												{name}
-												<img
-													src={`${S3_URL}/images/characters/${img}`}
-													alt={name}
-												/>
-											</li>
-										)
-									)}
-								</ul>
-							);
-						}}
-					</Query>
+					<Title isSize="medium">
+						Please{' '}
+						<Link href="/picks/make">
+							<a>click here</a>
+						</Link>{' '}
+						to make your picks before {DUE_DATE_FORMATTED}
+					</Title>
 				</Default>
 			</Authenticated>
 		);
