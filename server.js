@@ -3,6 +3,12 @@
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const next = require('next');
+const {
+	join
+} = require('path');
+const {
+	parse
+} = require('url');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({
@@ -14,6 +20,15 @@ const createServer = () => {
 	const server = express();
 
 	server.use(cookieParser());
+	server.get('/service-worker.js', (req, res) => {
+		const parsedUrl = parse(req.url, true);
+		const {
+			pathname
+		} = parsedUrl;
+		const filePath = join(__dirname, '.next', pathname);
+
+		app.serveStatic(req, res, filePath);
+	});
 	server.get('/dogs/:breed', (req, res) => app.render(req, res, '/dogs/_breed', {
 		breed: req.params.breed,
 	}));

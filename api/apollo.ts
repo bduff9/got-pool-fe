@@ -1,7 +1,9 @@
-import { ApolloClient } from 'apollo-client';
 import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import { persistCache } from 'apollo-cache-persist';
+import { ApolloClient } from 'apollo-client';
 import { setContext } from 'apollo-link-context';
 import { createHttpLink } from 'apollo-link-http';
+import { RetryLink } from 'apollo-link-retry';
 import fetch from 'isomorphic-unfetch';
 import Cookies from 'universal-cookie';
 
@@ -28,11 +30,23 @@ const httpLink = createHttpLink({
 	uri: API_URL,
 });
 
+const retryLink = new RetryLink({ attempts: { max: Infinity } });
+
 function create (initialState?: any): ApolloClient<NormalizedCacheObject> {
+	const cache = new InMemoryCache().restore(initialState || {});
+	const link = retryLink.concat(authLink).concat(httpLink);
+
+	if (typeof window !== 'undefined') {
+		persistCache({
+			cache,
+			storage: window.localStorage,
+		});
+	}
+
 	return new ApolloClient({
-		cache: new InMemoryCache().restore(initialState || {}),
+		cache,
 		connectToDevTools: process.browser,
-		link: authLink.concat(httpLink),
+		link,
 		ssrMode: !process.browser,
 	});
 }
