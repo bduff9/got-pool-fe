@@ -1,164 +1,225 @@
-import React, { Component } from 'react';
-import { Box, Button, Column, Columns, Content, Control, Field, FieldBody, FieldLabel, Label, Title } from 'bloomer';
+import { Column, Columns } from 'bloomer';
+import { Request, Response } from 'express';
+import Router from 'next/router';
+import React, {
+	Component,
+	ChangeEvent,
+	MouseEvent,
+	createRef,
+	RefObject,
+} from 'react';
 
+import { Character, User, Pick } from '../../api/models';
+import { writeSubmitPicksLogWrapper } from '../../api/mutations';
+import { displayError, ensureAuthenticated } from '../../api/utilities';
+import Loading from '../../components/loading';
+import CharacterModal from '../../components/character-modal';
+import { Authenticated } from '../../layouts/authenticated';
 import Default from '../../layouts/default';
-import { displayError } from '../globals';
-import { addPick, deletePick, updatePick } from '../collections/picks';
-import Loading from './Loading';
-import CharacterCard from './CharacterCard';
-import CharacterModal from './CharacterModal';
-import Character from '../collections/characters';
-import { writeLog } from '../collections/gotlogs';
-import Pick from '../collections/picks';
-import { submitPicks } from '../collections/users';
+import { FetchResult, Query } from 'react-apollo';
+import { makePicks } from '../../api/queries';
+import MyPicks from '../../components/my-picks';
+import MakePicksControls from '../../components/make-picks-controls';
+import FilterPicks from '../../components/filter-picks';
+import CharacterPickGrid from '../../components/character-pick-grid';
 
 const meta = { title: 'Make Picks' };
 
-class MakePicks extends Component {
-	state = {
-		filterCharacterStr: '',
+class MakePicks extends Component<
+	{
+		writeSubmitPicksLog: (
+			userID: string
+		) => Promise<void | FetchResult<
+	{},
+	Record<string, any>,
+	Record<string, any>
+	>>;
+	},
+	{
+		currentModal: Character | null;
+		filterCharacterStr: string;
+		isMinified: boolean;
+	}
+	> {
+	private tiebreakerInputRef: RefObject<HTMLInputElement> = createRef();
+
+	public static async getInitialProps ({
+		req,
+		res,
+	}: {
+		req: Request;
+		res: Response;
+	}): Promise<{}> {
+		ensureAuthenticated(req, res);
+
+		return {};
+	}
+
+	public state: {
+		currentModal: Character | null;
+		filterCharacterStr: string;
+		isMinified: boolean;
+	} = {
 		currentModal: null,
-		subscriptions: {
-			characters: Meteor.subscribe('allCharacters'),
-			picks: Meteor.subscribe('myPicks')
-		}
+		filterCharacterStr: '',
+		isMinified: false,
 	};
 
-	componentWillUnmount () {
-		const { characters, picks } = this.state.subscriptions;
-
-		characters.stop();
-		picks.stop();
-	}
-
-	characters () {
-		return Character.find({}, { sort: { name: 1 }}).fetch();
-	}
-
-	picks () {
-		return Pick.find({ user_id: Meteor.userId() }, { sort: { points: 1 }}).fetch();
-	}
-
-	_closeModal (ev) {
+	private _closeModal = (ev: MouseEvent<HTMLElement>): void => {
 		this.setState({ currentModal: null });
-	}
+	};
 
-	_filterCharacter (ev) {
+	private _filterCharacter = (ev: ChangeEvent<HTMLInputElement>): void => {
 		this.setState({ filterCharacterStr: ev.currentTarget.value });
-	}
+	};
 
-	_pickCharacter (character, ev) {
+	private _filterCharacters = (character: Character): boolean => {
+		const { filterCharacterStr } = this.state;
+
+		if (!filterCharacterStr) return true;
+
+		return (
+			character.name.toUpperCase().indexOf(filterCharacterStr.toUpperCase()) >
+			-1
+		);
+	};
+
+	private _pickCharacter = (character: Character): void => {
 		this.setState({ currentModal: character });
-	}
+	};
 
-	_setPoints (character_id, points, actionMode, ev) {
-		const characterObj = { character_id, points };
+	private _setPoints = (
+		characterID: number,
+		points: number,
+		actionMode: 'add' | 'update' | 'delete'
+	): void => {
+		const characterObj = { characterID, points };
+
 		switch (actionMode) {
 			case 'add':
-				addPick.call(characterObj, displayError);
+				console.log(`addPick.call(${characterObj}, displayError);`);
 				break;
 			case 'update':
-				updatePick.call(characterObj, displayError);
+				console.log(`updatePick.call(${characterObj}, displayError);`);
 				break;
 			case 'delete':
-				deletePick.call(characterObj, displayError);
+				console.log(`deletePick.call(${characterObj}, displayError);`);
 				break;
 			default:
 				console.error('Invalid action mode passed', actionMode);
 				break;
 		}
-		this.setState({ currentModal: null });
-	}
 
-	_submitPicks (ev) {
-		const tiebreakerStr = this.tiebreakerInput.value,
-				tiebreaker = parseInt(tiebreakerStr, 10),
-				totalPicked = this.picks().length;
+		this.setState({ currentModal: null });
+	};
+
+	private _submitPicks = (ev: MouseEvent): false => {
+		const userID = '';
+		const { writeSubmitPicksLog } = this.props;
+		const { current } = this.tiebreakerInputRef;
+		const tiebreakerStr = (current && current.value) || '0';
+		const tiebreaker = parseInt(tiebreakerStr, 10);
+		const totalPicked = this.picks().length;
+
 		if (totalPicked < 7) {
-			Bert.alert({
-				message: 'You have not selected all 7 picks',
-				type: 'danger',
-				icon: 'fa-exclamation-triangle'
-			});
+			displayError('You have not selected all 7 picks', { type: 'warning' });
+
 			return false;
 		}
-		submitPicks.call({ tiebreaker }, err => {
+
+		submitPicks.call({ tiebreaker }, (err: Error) => {
 			if (err) {
-				displayError(err, { title: err.reason, type: 'warning' });
+				displayError(err.message, { type: 'error' });
 			} else {
-				Bert.alert({
-					message: 'Your picks have been successfully submitted!',
+				displayError('Your picks have been successfully submitted!', {
 					type: 'success',
-					icon: 'fa-thumbs-up'
 				});
-				writeLog.call({ userId: Meteor.userId(), action: 'SUBMIT_PICKS' }, displayError);
-				this.context.router.history.push('/');
+				writeSubmitPicksLog(userID).catch(displayError);
+
+				Router.push('/');
 			}
 		});
-	}
 
-	render () {
-		const { currentModal, filterCharacterStr, subscriptions } = this.state,
-				{ characters, picks } = subscriptions,
-				pageReady = characters.ready() && picks.ready();
+		return false;
+	};
+
+	private _toggleMinification = (): void => {
+		this.setState(prevState => ({ isMinified: !prevState.isMinified }));
+	};
+
+	public render (): JSX.Element {
+		const { currentModal, filterCharacterStr, isMinified } = this.state;
+
 		return (
-			<Default meta={meta}>
-				<Loading isLoading={!pageReady}>
-					<Box isFullWidth>
-						<Content isSize={{ desktop: 'medium' }} hasTextAlign="centered" isPaddingless>
-							<Title isSize={4} hasTextColor="danger"><strong>Picks locked when episode 2 begins!</strong></Title>
-						</Content>
-					</Box>
-					<Columns isCentered>
-						<Column isSize={{ desktop: '1/2', mobile: 'full' }}>
-							<Field isPulled="left">
-								<Label>Search </Label>
-							</Field>
-							<Field>
-								<Control isExpanded>
-									<input
-										className="input"
-										type="text"
-										placeholder="Search Character Name"
-										onChange={this._filterCharacter}
-										value={filterCharacterStr}
-									/>
-								</Control>
-							</Field>
-						</Column>
-						<Column isSize={{ desktop: '1/2', mobile: 'full' }}>
-							<Field isPulled="left">
-								<Label>Tiebreaker </Label>
-							</Field>
-							<Field>
-								<Control isExpanded>
-									<input
-										className="input"
-										type="number"
-										placeholder="Total Characters To Die This Season"
-										ref={input => { this.tiebreakerInput = input; }}
-									/>
-								</Control>
-							</Field>
-						</Column>
-					</Columns>
-					<Field >
-						<Control>
-							<Button isFullWidth isColor="primary" type="button" onClick={this._submitPicks}>Submit Picks</Button>
-						</Control>
-					</Field>
-					<Columns isCentered isMultiline>
-						{this.characters().filter(character => !filterCharacterStr || character.name.toUpperCase().indexOf(filterCharacterStr.toUpperCase()) > -1).map(character => (
-							<Column isSize={{ default: '1/4', tablet: '1/2', mobile: 'full' }} key={`character${character._id}`}>
-								<CharacterCard character={character} picks={this.picks()} pickCharacter={this._pickCharacter.bind(null, character)} />
-							</Column>
-						))}
-						{currentModal ? <CharacterModal character={currentModal} picks={this.picks()} closeModal={this._closeModal} setPoints={this._setPoints} /> : null}
-					</Columns>
-				</Loading>
-			</Default>
+			<Authenticated>
+				<Default meta={meta}>
+					<Query query={makePicks}>
+						{({ data, error, loading }) => {
+							const {
+								characters,
+								currentUser,
+								myPicks,
+							}: {
+								characters: Character[];
+								currentUser: User;
+								myPicks: Pick[];
+							} = data;
+
+							if (loading) {
+								return <Loading isLoading />;
+							}
+
+							if (error) {
+								displayError(error.message);
+
+								return <div>Something went wrong, please try again later</div>;
+							}
+
+							console.log({ data, error, loading });
+
+							return (
+								<Columns isCentered isMultiline>
+									<Column isSize={{ desktop: '3/4', mobile: 'full' }}>
+										<MyPicks myPicks={myPicks} />
+									</Column>
+									<Column isSize={{ desktop: '1/4', mobile: 'full' }}>
+										<MakePicksControls
+											hasSubmitted={currentUser.submitted === 'Y'}
+											tiebreaker={currentUser.tiebreaker}
+										/>
+									</Column>
+									<Column isSize="full">
+										<FilterPicks
+											filterCharacters={this._filterCharacter}
+											filterString={filterCharacterStr}
+											isMinified={isMinified}
+											toggleMinification={this._toggleMinification}
+										/>
+									</Column>
+
+									<Column isSize="full" isHidden={isMinified}>
+										<CharacterPickGrid
+											characters={characters.filter(this._filterCharacters)}
+											myPicks={myPicks}
+											pickCharacter={this._pickCharacter}
+										/>
+										{currentModal && (
+											<CharacterModal
+												character={currentModal}
+												picks={data.myPicks}
+												closeModal={this._closeModal}
+												setPoints={this._setPoints}
+											/>
+										)}
+									</Column>
+								</Columns>
+							);
+						}}
+					</Query>
+				</Default>
+			</Authenticated>
 		);
 	}
 }
 
-export default MakePicks;
+export default writeSubmitPicksLogWrapper(MakePicks);

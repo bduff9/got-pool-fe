@@ -1,14 +1,20 @@
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+	faBookDead,
+	faCheck,
+	faFilter,
 	faHome,
 	faKey,
 	faLock,
+	faMinusSquare,
+	faPlusSquare,
 	faQuestionCircle,
+	faReceipt,
+	faSearch,
 	faSignOutAlt,
+	faSpinner,
 	faUser,
 	faUsers,
-	faBookDead,
-	faReceipt,
 	faUserCog,
 } from '@fortawesome/free-solid-svg-icons';
 import App, { Container } from 'next/app';
@@ -24,12 +30,18 @@ import withApollo from '../components/with-apollo';
 
 library.add(
 	faBookDead,
+	faCheck,
+	faFilter,
 	faHome,
 	faKey,
 	faLock,
+	faMinusSquare,
+	faPlusSquare,
 	faQuestionCircle,
 	faReceipt,
+	faSearch,
 	faSignOutAlt,
+	faSpinner,
 	faUser,
 	faUsers,
 	faUserCog

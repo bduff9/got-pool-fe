@@ -1,4 +1,5 @@
-import { Icon, Notification } from 'bloomer';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Notification } from 'bloomer';
 import Link from 'next/link';
 import React, { Component } from 'react';
 import { FetchResult } from 'react-apollo';
@@ -17,7 +18,7 @@ class Logout extends Component<{
 	Record<string, any>,
 	Record<string, any>
 	>>;
-	}> {
+}> {
 	public static async getInitialProps (): Promise<{}> {
 		return {};
 	}
@@ -37,9 +38,9 @@ class Logout extends Component<{
 
 							return (
 								<div>
-									<Icon isSize="medium" isAlign="left">
-										<i className="fa fa-spin fa-spinner" aria-hidden="true" />
-									</Icon>
+									<span className="is-medium is-left">
+										<FontAwesomeIcon icon="spinner" spin />
+									</span>
 									Logging you out...
 								</div>
 							);

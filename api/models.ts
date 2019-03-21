@@ -1,6 +1,12 @@
 import { Request, Response, Router } from 'express';
 import { Component } from 'react';
 
+export type Lit = string | number | boolean | undefined | null | void | {};
+
+export const tuple = <T extends Lit[]>(...args: T): T => args;
+
+export const pointArr = tuple(1, 2, 3, 4, 5, 6, 7);
+
 export interface Context {
 	asPath: string;
 	Component: Component;
@@ -22,6 +28,20 @@ export interface ErrorProps {
 	err: { statusCode: number };
 }
 
+export interface Character {
+	id: number;
+	name: string;
+	img: string;
+	alive: 'N' | 'Y';
+}
+
+export interface Pick {
+	id: number;
+	user: User;
+	points: typeof pointArr[number];
+	character: Character;
+}
+
 export interface User {
 	id: string;
 	name: string;
@@ -29,6 +49,6 @@ export interface User {
 	paymentOption: string;
 	paymentAccount?: string;
 	points: number;
-	tiebreaker: number;
+	tiebreaker: typeof pointArr[number];
 	submitted: 'Y' | 'N';
 }

@@ -24,3 +24,30 @@ export const currentUser = gql`
 		}
 	}
 `;
+
+export const makePicks = gql`
+	query makePicksScreen {
+		characters {
+			id
+			name
+			img
+			alive
+		}
+		currentUser {
+			id
+			name
+			tiebreaker
+			submitted
+		}
+		myPicks {
+			id
+			points
+			character {
+				id
+				name
+				img
+				alive
+			}
+		}
+	}
+`;

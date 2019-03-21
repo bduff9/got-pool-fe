@@ -2,10 +2,8 @@ import { Title } from 'bloomer';
 import { Request, Response } from 'express';
 import Link from 'next/link';
 import React, { Component } from 'react';
-import { Query } from 'react-apollo';
 
-import { DUE_DATE_FORMATTED, S3_URL } from '../api/constants';
-import { allCharacters } from '../api/queries';
+import { DUE_DATE_FORMATTED } from '../api/constants';
 import { ensureAuthenticated } from '../api/utilities';
 import { Authenticated } from '../layouts/authenticated';
 import Default from '../layouts/default';
@@ -17,8 +15,8 @@ class IndexPage extends Component {
 		req,
 		res,
 	}: {
-	req: Request;
-	res: Response;
+		req: Request;
+		res: Response;
 	}): Promise<{}> {
 		ensureAuthenticated(req, res);
 

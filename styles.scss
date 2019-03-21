@@ -67,27 +67,31 @@
 
 .title {
   padding-top: .75em;
+  padding-bottom: .75em;
   font-size: 1.25em;
 }
 
 .dead {
-  text-decoration: line-through;
+
+  .title {
+    text-decoration: line-through;
+  }
 
   img {
-    position: relative;
+    filter: grayscale(1);
+  }
 
-    &:after {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      content: "\274c";
-      font-size: 50px;
-      color: #FFF;
-      line-height: 100px;
-      text-align: center;
-    }
+  figure:after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    content: "\274c";
+    font-size: 268px;
+    color: #F00;
+    line-height: 295px;
+    opacity: .55;
   }
 }
 
