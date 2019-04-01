@@ -1,9 +1,4 @@
-import React, { ComponentType, MouseEvent } from 'react';
-import Router from 'next/router';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
-import { FetchResult } from 'react-apollo';
-import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	Button,
 	Control,
@@ -14,26 +9,65 @@ import {
 	Input,
 	Label,
 } from 'bloomer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+	ErrorMessage,
+	Field as FormikField,
+	FieldProps,
+	Formik,
+	Form,
+} from 'formik';
+import Router from 'next/router';
+import React, { ComponentType, MouseEvent } from 'react';
+import { adopt } from 'react-adopt';
+import { MutationFn, MutationResult } from 'react-apollo';
+import { toast } from 'react-toastify';
+import * as Yup from 'yup';
 
-import { AuthConsumer } from './auth';
-import { writeLoginLogWrapper } from '../api/mutations';
+import { AuthConsumer, LoginArgs } from './auth';
+
+import { RenderProp } from '../api/models';
+import {
+	WriteLoginLogMutation,
+	WriteLoginLogData,
+	WriteLoginLogVars,
+} from '../api/mutations';
 import { displayError, getFormControlOutlineColor } from '../api/utilities';
 
-const LoginForm: ComponentType<{
-email: string;
-password: string;
-writeLoginLog: (
-	userID: string | null,
-	message?: string
-) => Promise<void | FetchResult<
-{},
-Record<string, any>,
-Record<string, any>
->>;
-}> = ({ email = '', password = '', writeLoginLog }): JSX.Element => (
-	<AuthConsumer>
-		{({ forgotPassword, login }) => (
+export interface LoginFormProps {
+	email: string;
+	password: string;
+}
+
+interface LoginFormRenderProps {
+	auth: {
+		forgotPassword: (email: string) => Promise<void>;
+		login: (creds: LoginArgs) => Promise<string>;
+	};
+	writeLoginLog: {
+		mutation: MutationFn<WriteLoginLogData, WriteLoginLogVars>;
+		result: MutationResult<WriteLoginLogData>;
+	};
+}
+
+const auth = ({ render }: RenderProp): JSX.Element => (
+	<AuthConsumer>{context => render && render(context)}</AuthConsumer>
+);
+const writeLoginLog = ({ render }: RenderProp): JSX.Element => (
+	<WriteLoginLogMutation>
+		{(mutation, result) => render && render({ mutation, result })}
+	</WriteLoginLogMutation>
+);
+const Composed = adopt<LoginFormRenderProps, {}>({
+	auth,
+	writeLoginLog,
+});
+
+const LoginForm: ComponentType<LoginFormProps> = ({
+	email = '',
+	password = '',
+}): JSX.Element => (
+	<Composed>
+		{({ auth: { forgotPassword, login }, writeLoginLog }) => (
 			<Formik
 				initialValues={{ email, password }}
 				validationSchema={Yup.object().shape({
@@ -51,7 +85,9 @@ Record<string, any>
 						setStatus('');
 						setSubmitting(false);
 						toast.success('Welcome back!');
-						writeLoginLog(userID).catch(displayError);
+						writeLoginLog
+							.mutation({ variables: { action: 'LOGIN', message: '', userID } })
+							.catch(displayError);
 						Router.push('/');
 					} catch (err) {
 						setStatus(err);
@@ -83,25 +119,20 @@ Record<string, any>
 								break;
 						}
 
-						writeLoginLog(
-							null,
-							`${email} failed to sign in${
-								err.message ? `: ${err.message}` : ''
-							}`
-						).catch(displayError);
+						writeLoginLog
+							.mutation({
+								variables: {
+									action: 'LOGIN',
+									message: `${email} failed to sign in${
+										err.message ? `: ${err.message}` : ''
+									}`,
+									userID: null,
+								},
+							})
+							.catch(displayError);
 					}
 				}}>
-				{({
-					values,
-					touched,
-					errors,
-					status,
-					handleChange,
-					handleSubmit,
-					handleBlur,
-					isSubmitting,
-					setStatus,
-				}) => {
+				{({ values, touched, errors, status, isSubmitting, setStatus }) => {
 					const switchToRegistration = (
 						ev: MouseEvent<HTMLButtonElement>
 					): Promise<boolean> => {
@@ -137,7 +168,7 @@ Record<string, any>
 					};
 
 					return (
-						<form onSubmit={handleSubmit}>
+						<Form>
 							{status && (
 								<Help isColor="danger">{status.message || status}</Help>
 							)}
@@ -148,28 +179,32 @@ Record<string, any>
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.email,
-													isTouched: !!touched.email,
-												})}
-												type="email"
-												required
-												autoFocus
+											<FormikField
 												name="email"
-												value={values.email}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Email Address"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.email,
+															isTouched: !!touched.email,
+														})}
+														type="email"
+														required
+														autoFocus
+														placeholder="Email Address"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="user" />
 											</span>
 										</Control>
 									</Field>
-									{errors.email && touched.email && (
-										<Help isColor="danger">{errors.email}</Help>
-									)}
+									<ErrorMessage
+										className="is-danger"
+										component={Help}
+										name="email"
+									/>
 								</FieldBody>
 
 								<FieldLabel isNormal isMarginless>
@@ -178,27 +213,31 @@ Record<string, any>
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.password,
-													isTouched: !!touched.password,
-												})}
-												type="password"
-												required
+											<FormikField
 												name="password"
-												value={values.password}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Password"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.password,
+															isTouched: !!touched.password,
+														})}
+														type="password"
+														required
+														placeholder="Password"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="lock" />
 											</span>
 										</Control>
 									</Field>
-									{errors.password && touched.password && (
-										<Help isColor="danger">{errors.password}</Help>
-									)}
+									<ErrorMessage
+										className="is-danger"
+										component={Help}
+										name="password"
+									/>
 								</FieldBody>
 								<Field isGrouped>
 									<FieldLabel />
@@ -229,12 +268,12 @@ Record<string, any>
 									</Control>
 								</Field>
 							</Field>
-						</form>
+						</Form>
 					);
 				}}
 			</Formik>
 		)}
-	</AuthConsumer>
+	</Composed>
 );
 
-export default writeLoginLogWrapper(LoginForm);
+export default LoginForm;

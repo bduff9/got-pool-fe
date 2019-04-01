@@ -1,6 +1,8 @@
 import Document, { Head, Main, NextScript } from 'next/document';
 import React from 'react';
 
+import { S3_URL } from '../api/constants';
+
 class CustomDoc extends Document {
 	public render (): JSX.Element {
 		return (
@@ -11,7 +13,11 @@ class CustomDoc extends Document {
 						name="viewport"
 						content="initial-scale=1.0, width=device-width"
 					/>
-					<link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+					<link
+						rel="icon"
+						type="image/x-icon"
+						href={`${S3_URL}/images/favicon.ico`}
+					/>
 				</Head>
 				<body>
 					<Main />

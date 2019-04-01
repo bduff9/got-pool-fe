@@ -1,24 +1,22 @@
-import {
-	Control,
-	Field,
-	FieldBody,
-	FieldLabel,
-	Input,
-	Label,
-	Button,
-} from 'bloomer';
+import { Control, Field, FieldBody, FieldLabel, Label, Button } from 'bloomer';
 import React from 'react';
 
-import { pointArr } from '../api/models';
+import ResetPicksButton from './reset-picks-button';
+import SetTiebreaker from './set-tiebreaker';
+import SubmitPicksButton from './submit-picks-button';
+
+import { Pick } from '../api/models';
 import { displayError } from '../api/utilities';
 
 interface MakePicksControlsProps {
 	hasSubmitted: boolean;
-	tiebreaker: typeof pointArr[number];
+	picks: Pick[];
+	tiebreaker: number | null;
 }
 
 const MakePicksControls = ({
 	hasSubmitted,
+	picks,
 	tiebreaker,
 }: MakePicksControlsProps): JSX.Element => {
 	const _displaySaveMessage = (): void => {
@@ -31,45 +29,39 @@ const MakePicksControls = ({
 		<div>
 			<Field isHorizontal>
 				<FieldLabel isNormal>
-					<Label>Tiebreaker</Label>
+					<Label
+						title="How many total characters from the list below will die this season (0 or more)?"
+						style={{ cursor: 'help' }}>
+						Tiebreaker
+					</Label>
 				</FieldLabel>
-				<FieldBody>
-					<Field isGrouped>
-						<Control isExpanded>
-							<Input
-								type="number"
-								placeholder="Total Characters To Die This Season"
-								value={tiebreaker}
-							/>
-						</Control>
-					</Field>
-				</FieldBody>
+				{hasSubmitted ? (
+					<FieldLabel isNormal>
+						<Label>{tiebreaker}</Label>
+					</FieldLabel>
+				) : (
+					<FieldBody>
+						<Field isGrouped>
+							<SetTiebreaker tiebreaker={tiebreaker} />
+						</Field>
+					</FieldBody>
+				)}
 			</Field>
 
-			<Field isGrouped isPulled="right">
-				<Control>
-					<Button
-						isColor="warning"
-						type="button"
-						onClick={ev => console.log(ev)}>
-						Reset
-					</Button>
-				</Control>
-				<Control>
-					<Button isColor="primary" type="button" onClick={_displaySaveMessage}>
-						Save
-					</Button>
-				</Control>
-				<Control>
-					<Button
-						isFullWidth
-						isColor="info"
-						type="button"
-						onClick={ev => console.log(ev)}>
-						Submit
-					</Button>
-				</Control>
-			</Field>
+			{!hasSubmitted && (
+				<Field isGrouped isPulled="right">
+					<ResetPicksButton />
+					<Control>
+						<Button
+							isColor="primary"
+							type="button"
+							onClick={_displaySaveMessage}>
+							Save
+						</Button>
+					</Control>
+					<SubmitPicksButton picks={picks} tiebreaker={tiebreaker} />
+				</Field>
+			)}
 		</div>
 	);
 };

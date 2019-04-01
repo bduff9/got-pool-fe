@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/named
+import { ISignUpResult } from 'amazon-cognito-identity-js';
 import {
 	Button,
 	Control,
@@ -7,19 +9,35 @@ import {
 	Label,
 	FieldLabel,
 	FieldBody,
+	Select,
 } from 'bloomer';
-import { Formik } from 'formik';
+import {
+	ErrorMessage,
+	Field as FormikField,
+	FieldProps,
+	Form,
+	Formik,
+	FormikActions,
+} from 'formik';
 import Router from 'next/router';
 import React, { ComponentType, MouseEvent } from 'react';
-import { FetchResult } from 'react-apollo';
+import { adopt } from 'react-adopt';
+import { MutationFn, MutationResult } from 'react-apollo';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 
-import { AuthConsumer } from './auth';
+import { AuthConsumer, RegisterArgs } from './auth';
 
-import { registerUserWrapper } from '../api/mutations';
+import { RenderProp, paymentTypes } from '../api/models';
+import {
+	RegisterUserMutation,
+	WriteRegisterLogMutation,
+	RegisterUserData,
+	RegisterUserVars,
+	WriteRegisterLogData,
+	WriteRegisterLogVars,
+} from '../api/mutations';
 import { displayError, getFormControlOutlineColor } from '../api/utilities';
-import { Select } from 'bloomer/lib/elements/Form/Select';
 
 Yup.addMethod(Yup.string, 'sameAs', function (ref, message) {
 	return this.test('sameAs', message, function (value) {
@@ -29,34 +47,66 @@ Yup.addMethod(Yup.string, 'sameAs', function (ref, message) {
 	});
 });
 
-const RegistrationForm: ComponentType<{
-email: string;
-password: string;
-registerUser: (
-	userID: string,
-	fullName: string,
-	paymentOption: string,
-	account?: string | undefined
-) => Promise<void | FetchResult<
-{},
-Record<string, any>,
-Record<string, any>
->>;
-writeRegisterLog: (
-	userID: string
-) => Promise<void | FetchResult<
-{},
-Record<string, any>,
-Record<string, any>
->>;
-}> = ({
-	email = '',
-	password = '',
+interface RegistrationFormRenderProps {
+	auth: {
+		forgotPassword: (email: string) => Promise<void>;
+		register: (data: RegisterArgs) => Promise<ISignUpResult>;
+	};
+	registerUser: {
+		mutation: MutationFn<RegisterUserData, RegisterUserVars>;
+		result: MutationResult<RegisterUserData>;
+	};
+	writeRegisterLog: {
+		mutation: MutationFn<WriteRegisterLogData, WriteRegisterLogVars>;
+		result: MutationResult<WriteRegisterLogData>;
+	};
+}
+
+export interface RegistrationFormProps {
+	email: string;
+	password: string;
+}
+
+interface RegistrationFormValues {
+	email: string;
+	password: string;
+	confirmPassword: string;
+	firstName: string;
+	lastName: string;
+	paymentOption: typeof paymentTypes[number];
+	paymentAccount: string;
+}
+
+const auth = ({ render }: RenderProp): JSX.Element => (
+	<AuthConsumer>{context => render && render(context)}</AuthConsumer>
+);
+const registerUser = ({ render }: RenderProp): JSX.Element => (
+	<RegisterUserMutation>
+		{(mutation, result) => render && render({ mutation, result })}
+	</RegisterUserMutation>
+);
+const writeRegisterLog = ({ render }: RenderProp): JSX.Element => (
+	<WriteRegisterLogMutation>
+		{(mutation, result) => render && render({ mutation, result })}
+	</WriteRegisterLogMutation>
+);
+
+const Composed = adopt<RegistrationFormRenderProps, {}>({
+	auth,
 	registerUser,
 	writeRegisterLog,
+});
+
+const RegistrationForm: ComponentType<RegistrationFormProps> = ({
+	email = '',
+	password = '',
 }): JSX.Element => (
-	<AuthConsumer>
-		{({ forgotPassword, register }) => (
+	<Composed>
+		{({
+			auth: { forgotPassword, register },
+			registerUser,
+			writeRegisterLog,
+		}) => (
 			<Formik
 				initialValues={{
 					email,
@@ -64,7 +114,7 @@ Record<string, any>
 					confirmPassword: '',
 					firstName: '',
 					lastName: '',
-					paymentOption: '',
+					paymentOption: 'CASH',
 					paymentAccount: '',
 				}}
 				validationSchema={Yup.object().shape({
@@ -75,6 +125,7 @@ Record<string, any>
 						.min(6, 'Password must be at least 6 characters')
 						.required('Please enter a password'),
 					confirmPassword: Yup.string()
+						//@ts-ignore
 						.sameAs(Yup.ref('password'), 'Please enter the same password again')
 						.required('Please enter the same password again'),
 					firstName: Yup.string().required('Please enter your first name'),
@@ -111,24 +162,38 @@ Record<string, any>
 						lastName,
 						paymentAccount,
 						paymentOption,
-					},
-					{ setSubmitting }
+					}: RegistrationFormValues,
+					{ setSubmitting }: FormikActions<RegistrationFormValues>
 				) => {
 					register({ email, firstName, lastName, password })
-						.then(result =>
-							registerUser(
-								result.userSub,
-								`${firstName} ${lastName}`,
-								paymentOption,
-								paymentAccount
-							)
+						.then(({ userSub }) =>
+							registerUser.mutation({
+								variables: {
+									fullName: `${firstName} ${lastName}`,
+									paymentAccount: paymentAccount || null,
+									paymentOption,
+									userID: userSub,
+								},
+							})
 						)
-						.then(({ data }) => {
+						.then(mutationResult => {
 							setSubmitting(false);
 							toast.success('Thanks for registering');
-							writeRegisterLog(data.addUser.id).catch((err: Error) =>
-								displayError(err.message)
-							);
+
+							if (mutationResult && mutationResult.data) {
+								const { addUser } = mutationResult.data;
+
+								writeRegisterLog
+									.mutation({
+										variables: {
+											action: 'REGISTER',
+											message: '',
+											userID: addUser.id,
+										},
+									})
+									.catch((err: Error) => displayError(err.message));
+							}
+
 							Router.push(`/confirm?email=${email}`, '/confirm');
 						})
 						.catch((err: Error) => {
@@ -140,9 +205,6 @@ Record<string, any>
 					touched,
 					errors,
 					error,
-					handleChange,
-					handleSubmit,
-					handleBlur,
 					isSubmitting,
 					setStatus,
 				}): JSX.Element => {
@@ -181,7 +243,7 @@ Record<string, any>
 					};
 
 					return (
-						<form onSubmit={handleSubmit}>
+						<Form>
 							<Field isHorizontal>
 								<FieldLabel isNormal>
 									<Label>Email</Label>
@@ -189,22 +251,24 @@ Record<string, any>
 								<FieldBody>
 									<Field>
 										<Control>
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.email,
-													isTouched: !!touched.email,
-												})}
-												type="text"
+											<FormikField
 												name="email"
-												value={values.email}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Email Address"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.email,
+															isTouched: !!touched.email,
+														})}
+														type="email"
+														required
+														autoFocus
+														placeholder="Email Address"
+													/>
+												)}
 											/>
 										</Control>
-										{errors.email && touched.email && (
-											<Help isColor="danger">{errors.email}</Help>
-										)}
+										<ErrorMessage className="is-danger" name="email" />
 									</Field>
 								</FieldBody>
 							</Field>
@@ -216,42 +280,47 @@ Record<string, any>
 								<FieldBody>
 									<Field>
 										<Control>
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.password,
-													isTouched: !!touched.password,
-												})}
-												type="password"
+											<FormikField
 												name="password"
-												value={values.password}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Password"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.password,
+															isTouched: !!touched.password,
+														})}
+														type="password"
+														required
+														placeholder="Password"
+													/>
+												)}
 											/>
 										</Control>
-										{errors.password && touched.password && (
-											<Help isColor="danger">{errors.password}</Help>
-										)}
+										<ErrorMessage className="is-danger" name="password" />
 									</Field>
 
 									<Field>
 										<Control>
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.confirmPassword,
-													isTouched: !!touched.confirmPassword,
-												})}
-												type="password"
+											<FormikField
 												name="confirmPassword"
-												value={values.confirmPassword}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Confirm Password"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.confirmPassword,
+															isTouched: !!touched.confirmPassword,
+														})}
+														type="password"
+														required
+														placeholder="Confirm Password"
+													/>
+												)}
 											/>
 										</Control>
-										{errors.confirmPassword && touched.confirmPassword && (
-											<Help isColor="danger">{errors.confirmPassword}</Help>
-										)}
+										<ErrorMessage
+											className="is-danger"
+											name="confirmPassword"
+										/>
 									</Field>
 								</FieldBody>
 							</Field>
@@ -263,42 +332,44 @@ Record<string, any>
 								<FieldBody>
 									<Field>
 										<Control>
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.firstName,
-													isTouched: !!touched.lastName,
-												})}
-												type="text"
+											<FormikField
 												name="firstName"
-												value={values.firstName}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="First Name"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.firstName,
+															isTouched: !!touched.lastName,
+														})}
+														type="text"
+														required
+														placeholder="First Name"
+													/>
+												)}
 											/>
 										</Control>
-										{errors.firstName && touched.firstName && (
-											<Help isColor="danger">{errors.firstName}</Help>
-										)}
+										<ErrorMessage className="is-danger" name="firstName" />
 									</Field>
 
 									<Field>
 										<Control>
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.lastName,
-													isTouched: !!touched.lastName,
-												})}
-												type="text"
+											<FormikField
 												name="lastName"
-												value={values.lastName}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Last Name"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.lastName,
+															isTouched: !!touched.lastName,
+														})}
+														type="text"
+														required
+														placeholder="Last Name"
+													/>
+												)}
 											/>
 										</Control>
-										{errors.lastName && touched.lastName && (
-											<Help isColor="danger">{errors.lastName}</Help>
-										)}
+										<ErrorMessage className="is-danger" name="lastName" />
 									</Field>
 								</FieldBody>
 							</Field>
@@ -310,46 +381,49 @@ Record<string, any>
 								<FieldBody>
 									<Field>
 										<Control>
-											<Select
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.paymentOption,
-													isTouched: !!touched.paymentOption,
-												})}
+											<FormikField
 												name="paymentOption"
-												value={values.paymentOption}
-												onChange={handleChange}>
-												<option value="">-- Select Type --</option>
-												<option value="CASH">Cash</option>
-												<option value="PAYPAL">Paypal</option>
-												<option value="VENMO">Venmo</option>
-												<option value="ZELLE">Zelle</option>
-											</Select>
+												render={({ field }: FieldProps) => (
+													<Select
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.paymentOption,
+															isTouched: !!touched.paymentOption,
+														})}
+														required>
+														<option value="">-- Select Type --</option>
+														<option value="CASH">Cash</option>
+														<option value="PAYPAL">Paypal</option>
+														<option value="VENMO">Venmo</option>
+														<option value="ZELLE">Zelle</option>
+													</Select>
+												)}
+											/>
 										</Control>
-										{errors.paymentOption && touched.paymentOption && (
-											<Help isColor="danger">{errors.paymentOption}</Help>
-										)}
+										<ErrorMessage className="is-danger" name="paymentOption" />
 									</Field>
 
 									<Field>
 										<Control>
 											{values.paymentOption && values.paymentOption !== 'CASH' && (
-												<Input
-													isColor={getFormControlOutlineColor({
-														hasError: !!errors.paymentAccount,
-														isTouched: !!touched.paymentAccount,
-													})}
-													type="text"
+												<FormikField
 													name="paymentAccount"
-													value={values.paymentAccount}
-													onChange={handleChange}
-													onBlur={handleBlur}
-													placeholder="Account"
+													render={({ field }: FieldProps) => (
+														<Input
+															{...field}
+															isColor={getFormControlOutlineColor({
+																hasError: !!errors.paymentAccount,
+																isTouched: !!touched.paymentAccount,
+															})}
+															type="text"
+															required
+															placeholder="Account"
+														/>
+													)}
 												/>
 											)}
 										</Control>
-										{errors.paymentAccount && touched.paymentAccount && (
-											<Help isColor="danger">{errors.paymentAccount}</Help>
-										)}
+										<ErrorMessage className="is-danger" name="paymentAccount" />
 									</Field>
 								</FieldBody>
 							</Field>
@@ -390,12 +464,12 @@ Record<string, any>
 							{error && error.message && (
 								<Help isColor="danger">{error.message}</Help>
 							)}
-						</form>
+						</Form>
 					);
 				}}
 			</Formik>
 		)}
-	</AuthConsumer>
+	</Composed>
 );
 
-export default registerUserWrapper(RegistrationForm);
+export default RegistrationForm;

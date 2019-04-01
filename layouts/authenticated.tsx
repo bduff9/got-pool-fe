@@ -3,11 +3,13 @@ import React from 'react';
 
 import { AuthConsumer } from '../components/auth';
 
+interface AuthenticatedProps {
+	children: JSX.Element[] | JSX.Element;
+}
+
 export const Authenticated = ({
 	children,
-}: {
-children: JSX.Element[] | JSX.Element;
-}): JSX.Element => (
+}: AuthenticatedProps): JSX.Element => (
 	<AuthConsumer>
 		{({ isSignedIn, loading }) => {
 			if (loading) return <div>Loading...</div>;

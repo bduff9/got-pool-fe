@@ -1,29 +1,26 @@
 import React, { Fragment, ReactNode } from 'react';
 import { Section } from 'bloomer';
 
+import { CurrentUserQuery } from '../api/queries';
 import Meta from '../components/meta';
 import Navigation from '../components/navigation';
 import { AuthConsumer } from '../components/auth';
-import { Query } from 'react-apollo';
-import { currentUser } from '../api/queries';
-import { CognitoUserAttribute } from 'amazon-cognito-identity-js';
 
 interface MetaObj {
 	description?: string;
 	title?: string;
 }
 
-const DefaultLayout = ({
-	children,
-	meta,
-}: {
-children: ReactNode;
-meta: MetaObj;
-}): JSX.Element => (
+interface DefaultLayoutProps {
+	children: ReactNode;
+	meta: MetaObj;
+}
+
+const DefaultLayout = ({ children, meta }: DefaultLayoutProps): JSX.Element => (
 	<div>
 		<AuthConsumer>
 			{({ isSignedIn, user }) => (
-				<Query query={currentUser}>
+				<CurrentUserQuery>
 					{({ data }) => {
 						let hasSubmitted = false;
 						let isAdmin = false;
@@ -55,7 +52,7 @@ meta: MetaObj;
 							</Fragment>
 						);
 					}}
-				</Query>
+				</CurrentUserQuery>
 			)}
 		</AuthConsumer>
 	</div>

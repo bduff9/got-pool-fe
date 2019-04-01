@@ -32,6 +32,7 @@ const httpLink = createHttpLink({
 
 const retryLink = new RetryLink({ attempts: { max: Infinity } });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function create (initialState?: any): ApolloClient<NormalizedCacheObject> {
 	const cache = new InMemoryCache().restore(initialState || {});
 	const link = retryLink.concat(authLink).concat(httpLink);
@@ -52,7 +53,8 @@ function create (initialState?: any): ApolloClient<NormalizedCacheObject> {
 }
 
 export default function initApollo (
-	initialState?: any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	initialState?: any,
 ): ApolloClient<NormalizedCacheObject> {
 	if (!process.browser) return create(initialState);
 

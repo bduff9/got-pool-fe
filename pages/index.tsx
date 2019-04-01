@@ -1,23 +1,16 @@
 import { Title } from 'bloomer';
-import { Request, Response } from 'express';
-import Link from 'next/link';
 import React, { Component } from 'react';
 
-import { DUE_DATE_FORMATTED } from '../api/constants';
 import { ensureAuthenticated } from '../api/utilities';
+import Dashboard from '../components/dashboard';
 import { Authenticated } from '../layouts/authenticated';
 import Default from '../layouts/default';
+import { Context } from '../api/models';
 
 const meta = { title: 'Dashboard' };
 
 class IndexPage extends Component {
-	public static async getInitialProps ({
-		req,
-		res,
-	}: {
-		req: Request;
-		res: Response;
-	}): Promise<{}> {
+	public static async getInitialProps ({ req, res }: Context): Promise<{}> {
 		ensureAuthenticated(req, res);
 
 		return {};
@@ -27,13 +20,8 @@ class IndexPage extends Component {
 		return (
 			<Authenticated>
 				<Default meta={meta}>
-					<Title isSize="medium">
-						Please{' '}
-						<Link href="/picks/make">
-							<a>click here</a>
-						</Link>{' '}
-						to make your picks before {DUE_DATE_FORMATTED}
-					</Title>
+					<Title isSize={1}>Welcome to the Death Pool!</Title>
+					<Dashboard />
 				</Default>
 			</Authenticated>
 		);

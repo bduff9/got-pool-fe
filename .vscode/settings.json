@@ -1,3 +1,26 @@
 {
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"cSpell.words": [
+		"apigw",
+		"binary",
+		"brienne",
+		"bulmaswatch",
+		"creds",
+		"dany",
+		"httpequiv",
+		"inmemory",
+		"sansa",
+		"serverless",
+		"toastr",
+		"tormun",
+		"types",
+		"tyrion",
+		"unfetch"
+	],
+	"workbench.colorCustomizations": {
+		"titleBar.activeBackground": "#a2db01",
+		"titleBar.inactiveBackground": "#a2db0199",
+		"titleBar.activeForeground": "#15202b",
+		"titleBar.inactiveForeground": "#15202b99"
+	}
 }

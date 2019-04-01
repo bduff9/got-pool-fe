@@ -65,21 +65,20 @@ const Navigation = ({
 								<NavbarItem
 									isHidden="tablet"
 									href="javascript:void(0);"
-									onClick={toggleRules}>
+									onClick={toggleRules}
+								>
 									<FontAwesomeIcon icon="question-circle" />
 								</NavbarItem>
-								{!hasSubmitted && (
-									<ActiveLink href="/picks/make" isHidden="tablet">
-										<FontAwesomeIcon icon="users" />
-									</ActiveLink>
-								)}
+								<ActiveLink href="/picks/make" isHidden="tablet">
+									<FontAwesomeIcon icon="users" />
+								</ActiveLink>
 								{isAdmin && (
 									<ActiveLink href="/admin/users" isHidden="tablet">
 										<FontAwesomeIcon icon="user-cog" />
 									</ActiveLink>
 								)}
 								{isAdmin && (
-									<ActiveLink href="/admin/pool" isHidden="tablet">
+									<ActiveLink href="/admin/characters" isHidden="tablet">
 										<FontAwesomeIcon icon="book-dead" />
 									</ActiveLink>
 								)}
@@ -101,14 +100,17 @@ const Navigation = ({
 								<NavbarItem
 									href="javascript:void(0);"
 									isActive={showRulesModal}
-									onClick={toggleRules}>
+									onClick={toggleRules}
+								>
 									Rules
 								</NavbarItem>
-								{!hasSubmitted && (
-									<ActiveLink href="/picks/make">Make Picks</ActiveLink>
-								)}
+								<ActiveLink href="/picks/make">
+									{hasSubmitted ? 'My Picks' : 'Make Picks'}
+								</ActiveLink>
 								{isAdmin && <ActiveLink href="/admin/users">Users</ActiveLink>}
-								{isAdmin && <ActiveLink href="/admin/pool">Kills</ActiveLink>}
+								{isAdmin && (
+									<ActiveLink href="/admin/characters">Kills</ActiveLink>
+								)}
 								{isAdmin && <ActiveLink href="/admin/logs">Logs</ActiveLink>}
 								<ActiveLink href="/logout">Log Out</ActiveLink>
 							</NavbarEnd>

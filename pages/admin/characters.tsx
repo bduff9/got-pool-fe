@@ -1,17 +1,16 @@
-import { Button } from 'bloomer';
 import React, { Component } from 'react';
 
-import { Context, User } from '../../api/models';
+import { Context, Character } from '../../api/models';
+import { AllCharactersQuery } from '../../api/queries';
 import { displayError, ensureAuthenticated } from '../../api/utilities';
+import CharactersTable from '../../components/characters-table';
 import Loading from '../../components/loading';
 import { Authenticated } from '../../layouts/authenticated';
 import Default from '../../layouts/default';
-import { AdminUsersQuery } from '../../api/queries';
-import UsersTable from '../../components/users-table';
 
-const meta = { title: 'Admin Users' };
+const meta = { title: 'Admin Characters' };
 
-class AdminUsers extends Component<{}, {}> {
+class AdminCharacters extends Component<{}, {}> {
 	public static async getInitialProps ({
 		req,
 		res,
@@ -26,16 +25,9 @@ class AdminUsers extends Component<{}, {}> {
 		return (
 			<Authenticated>
 				<Default meta={meta}>
-					<Button
-						isColor="danger"
-						onClick={() => console.log('TODO: mark all submitted')}
-					>
-						Mark All Submitted
-					</Button>
-					<br />
-					<AdminUsersQuery>
+					<AllCharactersQuery>
 						{({ data, error, loading }) => {
-							let users: User[] = [];
+							let characters: Character[] = [];
 
 							if (loading) return <Loading isLoading />;
 
@@ -45,17 +37,15 @@ class AdminUsers extends Component<{}, {}> {
 								return <div>Something went wrong, please try again later</div>;
 							}
 
-							if (data && data.adminUsers) {
-								users = data.adminUsers;
-							}
+							if (data && data.characters) characters = data.characters;
 
-							return <UsersTable users={users} />;
+							return <CharactersTable characters={characters} />;
 						}}
-					</AdminUsersQuery>
+					</AllCharactersQuery>
 				</Default>
 			</Authenticated>
 		);
 	}
 }
 
-export default AdminUsers;
+export default AdminCharacters;

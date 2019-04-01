@@ -7,12 +7,14 @@ import {
 	faKey,
 	faLock,
 	faMinusSquare,
+	faMoneyBill,
 	faPlusSquare,
 	faQuestionCircle,
 	faReceipt,
 	faSearch,
 	faSignOutAlt,
 	faSpinner,
+	faTimesCircle,
 	faUser,
 	faUsers,
 	faUserCog,
@@ -36,15 +38,17 @@ library.add(
 	faKey,
 	faLock,
 	faMinusSquare,
+	faMoneyBill,
 	faPlusSquare,
 	faQuestionCircle,
 	faReceipt,
 	faSearch,
 	faSignOutAlt,
 	faSpinner,
+	faTimesCircle,
 	faUser,
 	faUsers,
-	faUserCog
+	faUserCog,
 );
 
 class MyApp extends App {

@@ -1,4 +1,5 @@
-import { ApolloClient, NormalizedCacheObject } from 'apollo-boost';
+import { ApolloClient } from 'apollo-client';
+import { NormalizedCacheObject } from 'apollo-cache-inmemory';
 import Head from 'next/head';
 import React, { Component } from 'react';
 import { getDataFromTree } from 'react-apollo';
@@ -6,7 +7,8 @@ import { getDataFromTree } from 'react-apollo';
 import initApollo from '../api/apollo';
 import { Context } from '../api/models';
 
-const withApollo = (App: Component): Component =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const withApollo = (App: Component<any, any>): Component =>
 	class Apollo extends Component {
 		public static displayName = 'withApollo(App)';
 		private apolloClient: ApolloClient<NormalizedCacheObject>;
@@ -27,7 +29,7 @@ const withApollo = (App: Component): Component =>
 							Component={Component}
 							router={router}
 							apolloClient={apollo}
-						/>
+						/>,
 					);
 				} catch (error) {
 					console.error('Error while running `getDataFromTree`', error);
@@ -44,6 +46,7 @@ const withApollo = (App: Component): Component =>
 			};
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		public constructor (props: any) {
 			super(props);
 

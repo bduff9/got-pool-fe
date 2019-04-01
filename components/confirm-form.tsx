@@ -1,7 +1,4 @@
-import React, { ComponentType, MouseEvent } from 'react';
-import Router from 'next/router';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	Button,
 	Control,
@@ -12,14 +9,28 @@ import {
 	Input,
 	Label,
 } from 'bloomer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+	ErrorMessage,
+	Field as FormikField,
+	FieldProps,
+	Form,
+	Formik,
+} from 'formik';
+import Router from 'next/router';
+import React, { ComponentType, MouseEvent } from 'react';
+import * as Yup from 'yup';
 
 import { AuthConsumer } from './auth';
+
 import { displayError, getFormControlOutlineColor } from '../api/utilities';
 
-const ConfirmForm: ComponentType<{
-email: string;
-}> = ({ email = '' }): JSX.Element => (
+interface ConfirmFormProps {
+	email: string;
+}
+
+const ConfirmForm: ComponentType<ConfirmFormProps> = ({
+	email = '',
+}): JSX.Element => (
 	<AuthConsumer>
 		{({ confirmEmail, resendCode }) => (
 			<Formik
@@ -44,17 +55,7 @@ email: string;
 						displayError(err.message, { type: 'warning' });
 					}
 				}}>
-				{({
-					values,
-					touched,
-					errors,
-					status,
-					handleChange,
-					handleSubmit,
-					handleBlur,
-					isSubmitting,
-					setStatus,
-				}) => {
+				{({ values, touched, errors, status, isSubmitting, setStatus }) => {
 					const switchToLogin = (
 						ev: MouseEvent<HTMLButtonElement>
 					): Promise<boolean> => {
@@ -92,7 +93,7 @@ email: string;
 					};
 
 					return (
-						<form onSubmit={handleSubmit}>
+						<Form>
 							{status && (
 								<Help isColor="danger">{status.message || status}</Help>
 							)}
@@ -103,28 +104,28 @@ email: string;
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.email,
-													isTouched: !!touched.email,
-												})}
-												type="email"
-												required
-												autoFocus
+											<FormikField
 												name="email"
-												value={values.email}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Email Address"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.email,
+															isTouched: !!touched.email,
+														})}
+														type="email"
+														required
+														autoFocus
+														placeholder="Email Address"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="user" />
 											</span>
 										</Control>
 									</Field>
-									{errors.email && touched.email && (
-										<Help isColor="danger">{errors.email}</Help>
-									)}
+									<ErrorMessage className="is-danger" name="email" />
 								</FieldBody>
 
 								<FieldLabel isNormal isMarginless>
@@ -133,27 +134,27 @@ email: string;
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.code,
-													isTouched: !!touched.code,
-												})}
-												type="text"
-												required
+											<FormikField
 												name="code"
-												value={values.code}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Confirmation Code"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.code,
+															isTouched: !!touched.code,
+														})}
+														type="text"
+														required
+														placeholder="Confirmation Code"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="key" />
 											</span>
 										</Control>
 									</Field>
-									{errors.code && touched.code && (
-										<Help isColor="danger">{errors.code}</Help>
-									)}
+									<ErrorMessage className="is-danger" name="code" />
 								</FieldBody>
 
 								<Field isGrouped>
@@ -185,7 +186,7 @@ email: string;
 									</Control>
 								</Field>
 							</Field>
-						</form>
+						</Form>
 					);
 				}}
 			</Formik>

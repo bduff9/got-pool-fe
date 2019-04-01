@@ -4,9 +4,10 @@ import Link from 'next/link';
 import React, { Component } from 'react';
 import { FetchResult } from 'react-apollo';
 
-import { writeLogoutLogWrapper } from '../api/mutations';
+import { WriteLogoutLogMutation } from '../api/mutations';
 import { AuthConsumer } from '../components/auth';
 import Default from '../layouts/default';
+import { displayError } from '../api/utilities';
 
 const meta = { title: 'Goodbye' };
 
@@ -14,9 +15,11 @@ class Logout extends Component<{
 	writeLogoutLog: (
 		userID: string
 	) => Promise<void | FetchResult<
-	{},
-	Record<string, any>,
-	Record<string, any>
+		{},
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		Record<string, any>,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		Record<string, any>
 	>>;
 }> {
 	public static async getInitialProps (): Promise<{}> {
@@ -24,8 +27,6 @@ class Logout extends Component<{
 	}
 
 	public render (): JSX.Element {
-		const { writeLogoutLog } = this.props;
-
 		return (
 			<Default meta={meta}>
 				<AuthConsumer>
@@ -34,15 +35,30 @@ class Logout extends Component<{
 							const { attributes = {} } = user;
 							const { sub: userID } = attributes;
 
-							logout().then(() => writeLogoutLog(userID));
-
 							return (
-								<div>
-									<span className="is-medium is-left">
-										<FontAwesomeIcon icon="spinner" spin />
-									</span>
-									Logging you out...
-								</div>
+								<WriteLogoutLogMutation
+									variables={{ action: 'LOGOUT', message: '', userID }}>
+									{(mutation, { error, loading }) => {
+										logout()
+											.then(() => mutation())
+											.catch(displayError);
+
+										if (error) displayError(error.message);
+
+										if (loading) {
+											return (
+												<div>
+													<span className="is-medium is-left">
+														<FontAwesomeIcon icon="spinner" spin />
+													</span>
+													Logging you out...
+												</div>
+											);
+										}
+
+										return <div>Success!</div>;
+									}}
+								</WriteLogoutLogMutation>
 							);
 						}
 
@@ -63,4 +79,4 @@ class Logout extends Component<{
 	}
 }
 
-export default writeLogoutLogWrapper(Logout);
+export default Logout;

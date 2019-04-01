@@ -7,21 +7,9 @@ export const S3_URL =
 	'https://s3.us-east-2.amazonaws.com/got-pool-public-resources';
 
 /**
- * Actions for logging
- */
-export const ACTIONS = [
-	'_404',
-	'LOGIN',
-	'LOGOUT',
-	'PAID',
-	'REGISTER',
-	'SUBMIT_PICKS',
-];
-
-/**
  * The number of logs to display on load
  */
-export const LOGS_PER_PAGE = 20;
+export const LOGS_PER_PAGE = 25;
 
 /**
  * The cost to participate

@@ -24,7 +24,7 @@ const isAuthed = (idToken: string): boolean => {
 
 			if (user) return true;
 		} catch (err) {
-			console.error('Failed to auth server side', err);
+			console.error('Failed to auth server side', err.message);
 		}
 	}
 
@@ -71,8 +71,8 @@ export const getFormControlOutlineColor = ({
 	hasError,
 	isTouched,
 }: {
-hasError: boolean;
-isTouched: boolean;
+	hasError: boolean;
+	isTouched: boolean;
 }): string => {
 	if (!isTouched) return '';
 

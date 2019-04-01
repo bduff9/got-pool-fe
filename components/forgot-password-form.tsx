@@ -9,14 +9,21 @@ import {
 	Input,
 	Label,
 } from 'bloomer';
-import { Formik } from 'formik';
+import {
+	ErrorMessage,
+	Field as FormikField,
+	FieldProps,
+	Form,
+	Formik,
+} from 'formik';
 import Router from 'next/router';
 import React, { ComponentType, MouseEvent } from 'react';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 
-import { displayError, getFormControlOutlineColor } from '../api/utilities';
 import { AuthConsumer } from './auth';
+
+import { displayError, getFormControlOutlineColor } from '../api/utilities';
 
 Yup.addMethod(Yup.string, 'sameAs', function (ref, message) {
 	return this.test('sameAs', message, function (value) {
@@ -26,7 +33,11 @@ Yup.addMethod(Yup.string, 'sameAs', function (ref, message) {
 	});
 });
 
-const ForgotPasswordForm: ComponentType<{ email: string }> = ({
+interface ForgotPasswordFormProps {
+	email: string;
+}
+
+const ForgotPasswordForm: ComponentType<ForgotPasswordFormProps> = ({
 	email = '',
 }): JSX.Element => (
 	<AuthConsumer>
@@ -42,6 +53,7 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 						.min(6, 'Password must be at least 6 characters')
 						.required('Please enter a password'),
 					confirmPassword: Yup.string()
+						//@ts-ignore
 						.sameAs(Yup.ref('password'), 'Please enter the same password again')
 						.required('Please enter the same password again'),
 				})}
@@ -62,16 +74,7 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 						displayError(err.message, { type: 'warning' });
 					}
 				}}>
-				{({
-					values,
-					touched,
-					errors,
-					status,
-					handleChange,
-					handleSubmit,
-					handleBlur,
-					isSubmitting,
-				}) => {
+				{({ values, touched, errors, status, isSubmitting }) => {
 					const switchToLogin = (
 						ev: MouseEvent<HTMLButtonElement>
 					): Promise<boolean> => {
@@ -83,7 +86,7 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 					};
 
 					return (
-						<form onSubmit={handleSubmit}>
+						<Form>
 							{status && (
 								<Help isColor="danger">{status.message || status}</Help>
 							)}
@@ -94,28 +97,28 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.email,
-													isTouched: !!touched.email,
-												})}
-												type="email"
-												required
-												autoFocus
+											<FormikField
 												name="email"
-												value={values.email}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Email Address"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.email,
+															isTouched: !!touched.email,
+														})}
+														type="email"
+														required
+														autoFocus
+														placeholder="Email Address"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="user" />
 											</span>
 										</Control>
 									</Field>
-									{errors.email && touched.email && (
-										<Help isColor="danger">{errors.email}</Help>
-									)}
+									<ErrorMessage className="is-danger" name="email" />
 								</FieldBody>
 
 								<FieldLabel isNormal isMarginless>
@@ -126,27 +129,27 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.code,
-													isTouched: !!touched.code,
-												})}
-												type="text"
-												required
+											<FormikField
 												name="code"
-												value={values.code}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Confirmation Code"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.code,
+															isTouched: !!touched.code,
+														})}
+														type="text"
+														required
+														placeholder="Confirmation Code"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="key" />
 											</span>
 										</Control>
 									</Field>
-									{errors.code && touched.code && (
-										<Help isColor="danger">{errors.code}</Help>
-									)}
+									<ErrorMessage className="is-danger" name="code" />
 								</FieldBody>
 							</Field>
 
@@ -157,27 +160,27 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.password,
-													isTouched: !!touched.password,
-												})}
-												type="password"
-												required
+											<FormikField
 												name="password"
-												value={values.password}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="New Password"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.password,
+															isTouched: !!touched.password,
+														})}
+														type="password"
+														required
+														placeholder="New Password"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="lock" />
 											</span>
 										</Control>
 									</Field>
-									{errors.password && touched.password && (
-										<Help isColor="danger">{errors.password}</Help>
-									)}
+									<ErrorMessage className="is-danger" name="password" />
 								</FieldBody>
 
 								<FieldLabel isNormal isMarginless>
@@ -186,27 +189,27 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 								<FieldBody>
 									<Field isGrouped>
 										<Control isExpanded hasIcons="left">
-											<Input
-												isColor={getFormControlOutlineColor({
-													hasError: !!errors.confirmPassword,
-													isTouched: !!touched.confirmPassword,
-												})}
-												type="password"
-												required
+											<FormikField
 												name="confirmPassword"
-												value={values.confirmPassword}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												placeholder="Confirm New Password"
+												render={({ field }: FieldProps) => (
+													<Input
+														{...field}
+														isColor={getFormControlOutlineColor({
+															hasError: !!errors.confirmPassword,
+															isTouched: !!touched.confirmPassword,
+														})}
+														type="password"
+														required
+														placeholder="Confirm New Password"
+													/>
+												)}
 											/>
 											<span className="icon is-small is-left">
 												<FontAwesomeIcon icon="lock" />
 											</span>
 										</Control>
 									</Field>
-									{errors.confirmPassword && touched.confirmPassword && (
-										<Help isColor="danger">{errors.confirmPassword}</Help>
-									)}
+									<ErrorMessage className="is-danger" name="confirmPassword" />
 								</FieldBody>
 							</Field>
 
@@ -234,7 +237,7 @@ const ForgotPasswordForm: ComponentType<{ email: string }> = ({
 									</Field>
 								</FieldBody>
 							</Field>
-						</form>
+						</Form>
 					);
 				}}
 			</Formik>

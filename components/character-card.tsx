@@ -16,44 +16,65 @@ import { Character, Pick } from '../api/models';
 
 interface CharacterCardProps {
 	character: Character;
-	pickCharacter: (character: Character) => void;
-	picks: Pick[];
+	isMini?: boolean;
+	pickCharacter?: (character: Character) => void;
+	picks?: Pick[];
 }
 
 const CharacterCard = ({
 	character,
-	pickCharacter,
-	picks,
+	isMini = false,
+	pickCharacter = () => {},
+	picks = [],
 }: CharacterCardProps): JSX.Element => {
 	const pickThisCharacter = (): void => pickCharacter(character);
-	const used = picks.filter(pick => pick.id === character.id);
-	const isUsed = used.length === 1;
+	const used = picks.filter(pick => pick.character.id === character.id);
+	const isUsed = used.length > 0;
 
 	return (
 		<Card
 			className={character.alive === 'N' ? 'dead' : undefined}
 			onClick={pickThisCharacter}
-			style={{ cursor: 'pointer' }}>
-			<CardImage>
+			style={{ cursor: isMini ? 'auto' : 'pointer' }}
+			title={character.name}>
+			{isMini && isUsed && (
+				<Tag
+					isColor="danger"
+					className="is-rounded mini-card-tag"
+					isHidden="mobile">
+					{used[0].points}
+				</Tag>
+			)}
+			<Title isSize={6} isHidden="tablet">
+				{character.name}
+			</Title>
+			<CardImage isHidden="mobile">
 				<Image
+					className={isMini ? 'mini' : 'full'}
 					isRatio="square"
 					src={`${S3_URL}/images/characters/${character.img}`}
 				/>
 			</CardImage>
-			<CardContent isPaddingless>
-				<Media>
-					{isUsed && (
-						<MediaLeft>
-							<Tag isColor="danger">{used[0].points}</Tag>
-						</MediaLeft>
-					)}
-					<MediaContent>
-						<Title hasTextAlign="centered" isSize={4}>
-							{character.name}
-						</Title>
-					</MediaContent>
-				</Media>
-			</CardContent>
+			{!isMini && (
+				<CardContent isPaddingless>
+					<Media>
+						{isUsed && (
+							<MediaLeft isMarginless>
+								<Tag isColor="danger">{used[0].points}</Tag>
+							</MediaLeft>
+						)}
+						<MediaContent>
+							{isMini ? (
+								character.name
+							) : (
+								<Title hasTextAlign="centered" isSize={4}>
+									{character.name}
+								</Title>
+							)}
+						</MediaContent>
+					</Media>
+				</CardContent>
+			)}
 		</Card>
 	);
 };

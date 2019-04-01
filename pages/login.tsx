@@ -3,22 +3,23 @@ import { Container } from 'bloomer';
 
 import Default from '../layouts/default';
 import LoginForm from '../components/login-form';
-import { Request, Response } from 'express';
 import { ensureUnauthenticated } from '../api/utilities';
 import { Unauthenticated } from '../layouts/unauthenticated';
+import { Context } from '../api/models';
 
 const meta = { title: 'Login' };
 
-class Login extends Component<{ email: string; password: string }> {
+interface LoginProps {
+	email: string;
+	password: string;
+}
+
+class Login extends Component<LoginProps> {
 	public static async getInitialProps ({
 		req,
 		res,
 		query,
-	}: {
-	req: Request;
-	res: Response;
-	query: { email: string; password: string };
-	}): Promise<{}> {
+	}: Context): Promise<{}> {
 		ensureUnauthenticated(req, res);
 
 		return query;

@@ -21,19 +21,16 @@ provider:
   environment:
     NODE_ENV: ${self:custom.secrets.NODE_ENV}
 
-functions:
-  server:
-    handler: lambda.handler
-    events:
-      - http: ANY /
-      - http: ANY /{proxy+}
-
 plugins:
   - serverless-apigw-binary
   - serverless-domain-manager
+  - serverless-nextjs-plugin
 
 custom:
   secrets: ${file(secrets.json)}
+  serverless-nextjs:
+    nextConfigDir: ./
+    assetsBucketName: 'got-pool-static-resources'
   apigwBinary:
     types:
       - '*/*'
@@ -44,3 +41,7 @@ custom:
     stage: ${self:custom.secrets.NODE_ENV}
     createRoute53Record: false
     endpointType: 'regional'
+
+package:
+  exclude:
+    - ./**

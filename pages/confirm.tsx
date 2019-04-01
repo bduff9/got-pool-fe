@@ -3,20 +3,15 @@ import { Container } from 'bloomer';
 
 import Default from '../layouts/default';
 import ConfirmForm from '../components/confirm-form';
+import { Context } from '../api/models';
 
 const meta = { title: 'Confirm Email' };
 
-class Confirm extends Component<
-	{
+interface ConfirmProps {
 	email: string;
-	},
-	{}
-	> {
-	public static async getInitialProps ({
-		query,
-	}: {
-	query: { email: string };
-	}): Promise<{}> {
+}
+class Confirm extends Component<ConfirmProps> {
+	public static async getInitialProps ({ query }: Context): Promise<{}> {
 		return query;
 	}
 
