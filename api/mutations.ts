@@ -112,11 +112,11 @@ export class WriteLogoutLogMutation extends Mutation<
 	};
 }
 
-interface WritePaidLogData {
+export interface WritePaidLogData {
 	id: string;
 }
 
-interface WritePaidLogVars {
+export interface WritePaidLogVars {
 	action: 'PAID';
 	message: string;
 	userID: string;
@@ -347,5 +347,80 @@ export class ToggleCharacterAliveMutation extends Mutation<
 > {
 	public static defaultProps = {
 		mutation: toggleCharacterAlive,
+	};
+}
+
+const deleteUser = gql`
+	mutation deleteUser($userID: ID!) {
+		deleteUser(id: $userID)
+	}
+`;
+
+interface DeleteUserData {
+	deleteUser: number;
+}
+
+interface DeleteUserVars {
+	userID: string;
+}
+
+export class DeleteUserMutation extends Mutation<
+	DeleteUserData,
+	DeleteUserVars
+> {
+	public static defaultProps = {
+		mutation: deleteUser,
+	};
+}
+
+const updateUser = gql`
+	mutation updateUser(
+		$userID: ID!
+		$isPaid: YesNoEnum
+		$isSubmitted: YesNoEnum
+	) {
+		updateUser(id: $userID, paid: $isPaid, submitted: $isSubmitted) {
+			id
+			name
+			paid
+			submitted
+		}
+	}
+`;
+
+export interface UpdateUserData {
+	updateUser: User;
+}
+
+export interface UpdateUserVars {
+	userID: string;
+	isPaid?: typeof yesNo[number];
+	isSubmitted?: typeof yesNo[number];
+}
+
+export class UpdateUserMutation extends Mutation<
+	UpdateUserData,
+	UpdateUserVars
+> {
+	public static defaultProps = {
+		mutation: updateUser,
+	};
+}
+
+const markAllUsersSubmitted = gql`
+	mutation markAllUsersSubmitted {
+		markAllUsersSubmitted
+	}
+`;
+
+interface MarkAllUsersSubmittedData {
+	markAllUsersSubmitted: number;
+}
+
+export class MarkAllUsersSubmittedMutation extends Mutation<
+	MarkAllUsersSubmittedData
+> {
+	public static defaultProps = {
+		mutation: markAllUsersSubmitted,
 	};
 }

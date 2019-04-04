@@ -1,4 +1,3 @@
-import { Button } from 'bloomer';
 import React, { Component } from 'react';
 
 import { Context, User } from '../../api/models';
@@ -8,6 +7,7 @@ import { Authenticated } from '../../layouts/authenticated';
 import Default from '../../layouts/default';
 import { AdminUsersQuery } from '../../api/queries';
 import UsersTable from '../../components/users-table';
+import MarkAllSubmittedButton from '../../components/mark-all-submitted-button';
 
 const meta = { title: 'Admin Users' };
 
@@ -26,12 +26,8 @@ class AdminUsers extends Component<{}, {}> {
 		return (
 			<Authenticated>
 				<Default meta={meta}>
-					<Button
-						isColor="danger"
-						onClick={() => console.log('TODO: mark all submitted')}
-					>
-						Mark All Submitted
-					</Button>
+					<MarkAllSubmittedButton />
+					<br />
 					<br />
 					<AdminUsersQuery>
 						{({ data, error, loading }) => {

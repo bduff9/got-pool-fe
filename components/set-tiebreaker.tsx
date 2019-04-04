@@ -29,14 +29,15 @@ const SetTiebreaker = ({ tiebreaker }: SetTiebreakerProps): JSX.Element => (
 					},
 				});
 			}
-		}}>
+		}}
+	>
 		{(mutate, { error, loading }) => {
 			const updateTiebreaker = (ev: FocusEvent<HTMLInputElement>): void => {
 				const tiebreakerStr = ev.currentTarget.value;
 				const tiebreaker =
 					tiebreakerStr === '' ? null : parseInt(tiebreakerStr, 10);
 
-				mutate({ variables: { tiebreaker } }).catch(err => displayError(err));
+				mutate({ variables: { tiebreaker } });
 			};
 
 			if (error) displayError(error.message);

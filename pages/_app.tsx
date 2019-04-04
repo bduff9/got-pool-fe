@@ -7,7 +7,9 @@ import {
 	faKey,
 	faLock,
 	faMinusSquare,
+	faMobileAlt,
 	faMoneyBill,
+	faPiggyBank,
 	faPlusSquare,
 	faQuestionCircle,
 	faReceipt,
@@ -19,6 +21,7 @@ import {
 	faUsers,
 	faUserCog,
 } from '@fortawesome/free-solid-svg-icons';
+import { faPaypal } from '@fortawesome/free-brands-svg-icons';
 import App, { Container } from 'next/app';
 import React from 'react';
 import { ApolloProvider } from 'react-apollo';
@@ -38,7 +41,10 @@ library.add(
 	faKey,
 	faLock,
 	faMinusSquare,
+	faMobileAlt,
 	faMoneyBill,
+	faPaypal,
+	faPiggyBank,
 	faPlusSquare,
 	faQuestionCircle,
 	faReceipt,

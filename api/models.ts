@@ -80,8 +80,8 @@ export interface User {
 	id: string;
 	name: string;
 	paid: typeof yesNo[number];
-	paymentOption: typeof paymentTypes[number];
-	paymentAccount?: string;
+	payment_option: typeof paymentTypes[number];
+	payment_account?: string;
 	tiebreaker: number | null;
 	submitted: typeof yesNo[number];
 	picks: Pick[];

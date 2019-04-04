@@ -49,7 +49,8 @@ const submitPicks = ({ render }: RenderProp): JSX.Element => (
 					},
 				});
 			}
-		}}>
+		}}
+	>
 		{(mutation, result) => render && render({ mutation, result })}
 	</SubmitPicksMutation>
 );
@@ -80,7 +81,7 @@ const SubmitPicksButton = ({
 					return;
 				}
 
-				for (let i = pointArr.length; i--; ) {
+				for (let i = pointArr.length; i--; null) {
 					const point = pointArr[i];
 					const firstUsed = picksUsed.indexOf(point);
 
@@ -92,7 +93,7 @@ const SubmitPicksButton = ({
 
 					if (firstUsed !== picksUsed.lastIndexOf(point)) {
 						displayError(
-							`You have used pick ${point} more than once, please resolve to submit`
+							`You have used pick ${point} more than once, please resolve to submit`,
 						);
 
 						return;
@@ -101,7 +102,7 @@ const SubmitPicksButton = ({
 
 				if (tiebreaker == null || tiebreaker < 0) {
 					displayError(
-						'Please enter a valid tiebreaker value of total main characters to die this season (0 or more)'
+						'Please enter a valid tiebreaker value of total main characters to die this season (0 or more)',
 					);
 
 					return;
@@ -112,12 +113,12 @@ const SubmitPicksButton = ({
 					.then(() =>
 						writeSubmittedPicksLog.mutation({
 							variables: { action: 'SUBMIT_PICKS', message: '' },
-						})
+						}),
 					)
 					.then(() => {
 						displayError(
 							'You have successfully submitted your picks.  Best of luck to thee!',
-							{ type: 'success' }
+							{ type: 'success' },
 						);
 					})
 					.catch(err => displayError(err));
@@ -143,7 +144,8 @@ const SubmitPicksButton = ({
 						isFullWidth
 						isLoading={submitPicksLoading || writeLogLoading}
 						type="button"
-						onClick={submitPicksFn}>
+						onClick={submitPicksFn}
+					>
 						Submit
 					</Button>
 				</Control>

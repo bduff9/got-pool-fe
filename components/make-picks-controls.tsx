@@ -31,7 +31,8 @@ const MakePicksControls = ({
 				<FieldLabel isNormal>
 					<Label
 						title="How many total characters from the list below will die this season (0 or more)?"
-						style={{ cursor: 'help' }}>
+						style={{ cursor: 'help' }}
+					>
 						Tiebreaker
 					</Label>
 				</FieldLabel>
@@ -55,7 +56,8 @@ const MakePicksControls = ({
 						<Button
 							isColor="primary"
 							type="button"
-							onClick={_displaySaveMessage}>
+							onClick={_displaySaveMessage}
+						>
 							Save
 						</Button>
 					</Control>
