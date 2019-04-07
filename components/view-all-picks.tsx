@@ -38,7 +38,7 @@ const ViewAllPicks = (): JSX.Element => (
 					if (tiebreaker1 >= 0 && tiebreaker2 < 0) return -1;
 
 					return Math.abs(tiebreaker1) - Math.abs(tiebreaker2);
-				}
+				},
 			);
 			let lastUser: {
 				lastPlace: number;
@@ -89,31 +89,48 @@ const ViewAllPicks = (): JSX.Element => (
 						</tr>
 					</thead>
 					<tbody>
-						{sortedUsers.map(({ name, picks, score, tiebreaker }) => (
-							<tr
-								className={currentUser.name === name ? 'is-selected' : ''}
-								key={`user-${name}`}>
-								<td>{getPlace({ score, tiebreaker })}</td>
-								<td className="nowrap">{name}</td>
-								<td>{score}</td>
-								<td>
-									{tiebreaker} / {totalDead}
-								</td>
-								<td>
-									<Columns>
-										{[...picks].sort(sortPicks).map(pick => (
-											<Column key={`pick-${pick.id}`}>
-												<CharacterCard
-													character={pick.character}
-													isMini
-													picks={picks}
-												/>
-											</Column>
+						{sortedUsers.map(({ name, picks, score, tiebreaker }) => {
+							const sortedPicks = [...picks].sort(sortPicks);
+
+							return (
+								<tr
+									className={currentUser.name === name ? 'is-selected' : ''}
+									key={`user-${name}`}
+								>
+									<td>{getPlace({ score, tiebreaker })}</td>
+									<td className="nowrap">{name}</td>
+									<td>{score}</td>
+									<td>
+										{tiebreaker} / {totalDead}
+									</td>
+									<td className="is-hidden-tablet">
+										{sortedPicks.map(pick => (
+											<p
+												className={`nowrap text-only${
+													pick.character.alive === 'N' ? ' dead' : undefined
+												}`}
+												key={`text-pick-${pick.id}`}
+											>
+												{`${pick.points} ${pick.character.name}`}
+											</p>
 										))}
-									</Columns>
-								</td>
-							</tr>
-						))}
+									</td>
+									<td className="is-hidden-mobile">
+										<Columns>
+											{sortedPicks.map(pick => (
+												<Column key={`pick-${pick.id}`}>
+													<CharacterCard
+														character={pick.character}
+														isMini
+														picks={picks}
+													/>
+												</Column>
+											))}
+										</Columns>
+									</td>
+								</tr>
+							);
+						})}
 					</tbody>
 				</Table>
 			);

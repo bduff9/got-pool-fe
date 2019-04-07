@@ -36,19 +36,14 @@ const CharacterCard = ({
 			className={character.alive === 'N' ? 'dead' : undefined}
 			onClick={pickThisCharacter}
 			style={{ cursor: isMini ? 'auto' : 'pointer' }}
-			title={character.name}>
+			title={character.name}
+		>
 			{isMini && isUsed && (
-				<Tag
-					isColor="danger"
-					className="is-rounded mini-card-tag"
-					isHidden="mobile">
+				<Tag isColor="danger" className="is-rounded mini-card-tag">
 					{used[0].points}
 				</Tag>
 			)}
-			<Title isSize={6} isHidden="tablet">
-				{character.name}
-			</Title>
-			<CardImage isHidden="mobile">
+			<CardImage>
 				<Image
 					className={isMini ? 'mini' : 'full'}
 					isRatio="square"
