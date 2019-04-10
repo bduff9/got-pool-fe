@@ -1,4 +1,3 @@
-import React from 'react';
 import {
 	Delete,
 	Modal,
@@ -8,6 +7,9 @@ import {
 	ModalCardBody,
 	ModalCardTitle,
 } from 'bloomer';
+import React from 'react';
+
+import { CURRENT_SEASON, POOL_COST } from '../api/constants';
 
 interface Props {
 	toggleRules: () => void;
@@ -24,8 +26,11 @@ const RulesModal = ({ toggleRules }: Props): JSX.Element => (
 			<ModalCardBody>
 				<div className="rules">
 					<ol>
-						<li>$10 entry fee for the entire season.</li>
-						<li>Pick 7 characters you think will perish in season 8.</li>
+						<li>${POOL_COST} entry fee for the entire season.</li>
+						<li>
+							Pick seven characters you think will perish in season{' '}
+							{CURRENT_SEASON}.
+						</li>
 						<li>Rank your picks on how confident you are each will die.</li>
 						<ul>
 							<li>
@@ -38,18 +43,18 @@ const RulesModal = ({ toggleRules }: Props): JSX.Element => (
 								choose Arya and assign 6 points to her character.
 							</li>
 							<li>
-								Continue this until all your 7 characters are chosen and all
-								have been assigned a point value.
-							</li>{' '}
+								Continue this until all seven characters are chosen and assigned
+								a point value.
+							</li>
 						</ul>
 						<li>
 							If you choose correctly and that character dies by the end of
-							season 7, you are awarded the points you assigned to the
-							character.
+							season {CURRENT_SEASON}, you are awarded the points you assigned
+							to the character.
 						</li>
 						<li>
 							A character is considered dead if they are still dead by the
-							curtain closing of season 7.
+							curtain closing of season {CURRENT_SEASON}.
 						</li>
 						<li>
 							A character turning into a member of the army of the dead is still

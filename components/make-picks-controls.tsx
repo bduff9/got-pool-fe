@@ -1,5 +1,6 @@
-import { Control, Field, FieldBody, FieldLabel, Label, Button } from 'bloomer';
-import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Button, Control, Field, FieldBody, FieldLabel, Label } from 'bloomer';
+import React, { MouseEvent, useEffect } from 'react';
 
 import ResetPicksButton from './reset-picks-button';
 import SetTiebreaker from './set-tiebreaker';
@@ -14,6 +15,8 @@ interface MakePicksControlsProps {
 	tiebreaker: number | null;
 }
 
+let hasShownHelp = false;
+
 const MakePicksControls = ({
 	hasSubmitted,
 	picks,
@@ -24,6 +27,22 @@ const MakePicksControls = ({
 			type: 'success',
 		});
 	};
+
+	const _getHelp = (ev?: MouseEvent<HTMLButtonElement>): void => {
+		if (!ev && hasShownHelp) return;
+
+		hasShownHelp = true;
+
+		displayError(
+			'Click each character image to assign them a point value on confidence they will die (7 is most confident, 1 is least confident)',
+			{ type: 'success' },
+		);
+	};
+
+	useEffect(() => {
+		if (!hasSubmitted) _getHelp();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return (
 		<div>
@@ -51,6 +70,11 @@ const MakePicksControls = ({
 
 			{!hasSubmitted && (
 				<Field isGrouped isPulled="right">
+					<Control>
+						<Button isColor="text" onClick={_getHelp}>
+							<FontAwesomeIcon icon="question-circle" />
+						</Button>
+					</Control>
 					<ResetPicksButton />
 					<Control>
 						<Button
