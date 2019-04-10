@@ -18,6 +18,7 @@ class CustomDoc extends Document {
 						type="image/x-icon"
 						href={`${S3_URL}/images/favicon.ico`}
 					/>
+					<meta name="theme-color" content="#52575C" />
 				</Head>
 				<body>
 					<Main />
