@@ -52,7 +52,7 @@
 		"apollo-link-http": "1.5.14",
 		"apollo-link-retry": "2.2.13",
 		"aws-amplify": "<1.1.22",
-		"aws-amplify-react": "2.3.4",
+		"aws-amplify-react": "2.6.3",
 		"bloomer": "0.6.5",
 		"bulma_scss": "0.7.2-rc.0",
 		"bulmaswatch": "0.7.2",
