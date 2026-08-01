@@ -80,7 +80,7 @@
 		"@babel/plugin-transform-runtime": "7.4.3",
 		"@babel/preset-env": "7.4.3",
 		"@types/aws-serverless-express": "3.3.0",
-		"@types/babel__core": "7.1.0",
+		"@types/babel__core": "7.20.5",
 		"@types/cookie-parser": "1.4.1",
 		"@types/enzyme": "3.9.1",
 		"@types/enzyme-adapter-react-16": "1.0.5",
